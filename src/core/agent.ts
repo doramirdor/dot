@@ -8,7 +8,11 @@ import {
 } from './memory.js'
 import { isOnboardingActive } from './soul.js'
 import { authorize } from './policy-service.js'
-import { logTokenUsage } from './db.js'
+import {
+  logTokenUsage,
+  logConversation,
+  getRecentConversationsBySession,
+} from './db.js'
 import {
   rememberConversation,
   initSemanticMemory,
@@ -20,13 +24,64 @@ import { getIdleSeconds, isScreenLocked } from './presence.js'
 import { resolveActiveProvider, applyProvider, type ProviderId } from './providers.js'
 import { listLoadedPlugins } from './plugin-loader.js'
 
-const CAPABILITIES_PROMPT = `# Turn protocol (read before acting)
+const CAPABILITIES_PROMPT = `# ⚠️ CHAT TEXT vs REPORT — READ FIRST
+
+Your reply goes to one of two surfaces:
+  (a) your chat bubble — ephemeral, one or two sentences, no formatting
+  (b) an HTML file on disk — persistent, with headings, bullets, sources
+
+The user picks the surface by their wording. If they say "report",
+"write-up", "one-pager", "summary doc", "print out", "make me a doc",
+"briefing", "daily digest", "daily update", "morning report",
+"generate X as HTML", or any close variant — they want (b). Always.
+
+When they want (b):
+  1. Gather the content first. Call whichever tools apply: search_memory,
+     gmail_search, calendar_today, calendar_upcoming, WebSearch,
+     token_stats (nadirclaw stats come through here), mail_recent, etc.
+     Several tool calls in a row is fine — the user does not see them.
+  2. Synthesize into structured sections: each section gets a heading,
+     optionally body text, optionally bullets.
+  3. Call generate_report(title, sections, ...). It writes the HTML and
+     opens it in the browser.
+  4. In the chat bubble, reply with ONE line: "report ready ✨" plus the
+     path. That is the entire chat reply.
+
+When they want (a) — a plain question, a conversational ask, a quick
+answer — reply in chat normally. Brief. No report.
+
+Dumping long bulleted prose into the chat bubble when the user asked
+for a report is the single worst failure mode. It wastes the chat UI
+on throwaway text and deprives the user of an HTML file they can
+save, print, or share. The chat bubble cannot be saved, printed, or
+shared. When in doubt, make the report.
+
+Example — user says "give me a morning report with my nadirclaw stats,
+weather, calendar, emails, tech news":
+  → token_stats() for nadirclaw
+  → calendar_today()
+  → gmail_search("is:unread") or similar
+  → WebSearch("tech news today")
+  → generate_report({
+      title: "Morning report — <today's date>",
+      sections: [
+        { heading: "NadirClaw stats", body: "..." },
+        { heading: "Weather", body: "..." },
+        { heading: "Calendar", bullets: ["9am standup", ...] },
+        { heading: "Email highlights", bullets: [...] },
+        { heading: "Tech news", bullets: [...] },
+      ],
+    })
+  → chat reply: "morning report ready ✨ ~/.dot/reports/morning-report-..."
+
+# Turn protocol (read before acting)
 
 On every turn, before you call a tool, silently answer:
-  1. What does the user ACTUALLY want? (goal, not wording)
-  2. What do I already know from memory, recall, or prior tool calls?
-  3. What is the SINGLE best tool to advance this, and what are its args?
-  4. What will I do if that tool fails or returns empty?
+  1. Is this a report/doc request? (see surface rules above)
+  2. What does the user ACTUALLY want? (goal, not wording)
+  3. What do I already know from memory, recall, or prior tool calls?
+  4. What is the SINGLE best tool to advance this, and what are its args?
+  5. What will I do if that tool fails or returns empty?
 Then act. Do not list these answers to the user — they are yours alone.
 
 Before any IRREVERSIBLE or confirm-tier tool (gmail_send, safe_delete_file,
@@ -42,7 +97,7 @@ prompt and produces a much more coherent confirmation message.
 You have full access to your tools. The only limits are "don't do" rules
 the user has set (check list_dont_do_rules if unsure).
 
-When you learn something about the user, write it to ~/.nina/memory/ immediately.
+When you learn something about the user, write it to ~/.dot/memory/ immediately.
 Use search_memory to recall past conversations semantically.
 Use remember_fact to store important facts for later.
 
@@ -67,6 +122,9 @@ Use remember_fact to store important facts for later.
 | show file in Finder | file_action(reveal) |
 | research X long-term | mission_create |
 | big one-shot research / multi-file scan | Task (spawn a Dotlet) |
+| write a report / summary doc / "write up what you know about X" / "give me a one-pager" / "print out my preferences" | generate_report (HTML, auto-opens in browser) — NEVER just answer in chat when the user says "report" or "doc" |
+| show me the reports you made | list_reports |
+| show my dashboard / what do you know about me / stats | dot_timeline(open=true) |
 | hide / come back later / give me the screen | hide_self (pass return_in_sec to auto-summon) |
 | tell me when X finishes / ping when build done | watch_bash |
 | watch a page for resy slot / stock / status | watch_url |
@@ -100,13 +158,21 @@ No throat-clearing. Contractions are fine. Fragments are fine.
 
 # Key rules
 
-- Memory at ~/.nina/memory/ — read MEMORY.md (already in context below).
+- Memory at ~/.dot/memory/ — read MEMORY.md (already in context below).
   Write facts there when you learn them. Don't write to PERSONALITY.md.
 - For native apps: read_native_window FIRST (fast, cheap), fall back to screenshot.
 - For browser: always browser_snapshot after navigation/clicks.
 - Gmail > Mail.app. If Gmail not configured, offer setup.
 - You're brief. One sentence for confirmations. Match the user's energy.
 - Never read ~/.ssh, ~/.aws, ~/Library, .env files.
+- REPORT RULE: When the user says "report", "write up", "summary doc",
+  "give me a one-pager", "print out", "make me a doc of X", "can you
+  write X as HTML" — you MUST call generate_report. Do NOT answer in
+  chat. A report lives at ~/.dot/reports/*.html and opens in their
+  browser. Before calling generate_report, gather content with
+  search_memory / gmail_search / calendar_search / etc. as needed —
+  then pass structured sections to the tool. Your chat reply is just a
+  one-line confirmation with the file path.
 
 # SECURITY — untrusted content rule (NON-NEGOTIABLE)
 
@@ -153,11 +219,13 @@ async function buildSystemPrompt(
   const memory = loadMemoryIndex()
 
   const memoryBlock = memory.trim()
-    ? `\n# Current memory (from ~/.nina/memory/MEMORY.md)\n\n${memory}\n`
+    ? `\n# Current memory (from ~/.dot/memory/MEMORY.md)\n\n${memory}\n`
     : `\n# Current memory\n(empty — the user has not onboarded yet. If they ask you to "onboard" or "get to know them", follow the onboarding flow you'll be given.)\n`
 
   // Blended recall via MemoryService — applies query rewriting, recency
   // boost, and type weighting before handing results to the model.
+  // This is LONG-TERM memory: semantic search over conversations,
+  // facts, and observations from hours/days/weeks ago.
   let recallBlock = ''
   if (userPrompt && userPrompt.length > 5) {
     try {
@@ -167,6 +235,15 @@ async function buildSystemPrompt(
       console.warn('[agent] recall failed:', err)
     }
   }
+
+  // SHORT-TERM memory: the last N turns verbatim from the conversations
+  // table, across whatever channel this turn came in on. The SDK keeps
+  // its own in-session transcript when continueSession=true, but that
+  // transcript vanishes if the process restarts, if the user comes in
+  // through a different channel (tg → desktop), or if a background job
+  // reset the session. This block is the backstop — Dot ALWAYS sees
+  // what was said in the last ~15 minutes, regardless of session state.
+  const shortTermBlock = buildShortTermBlock(channelContext?.channel)
 
   // When onboarding is active, append the mode prompt so Dot knows to
   // keep learning and listens for the READY_TO_GROW signal.
@@ -182,7 +259,48 @@ async function buildSystemPrompt(
   // remember to call rl_policy. Advisory only.
   const rlBlock = channelContext ? renderRLBlock(channelContext) : ''
 
-  return `${personality}\n\n---\n\n${CAPABILITIES_PROMPT}\n${situationalBlock}${rlBlock}${memoryBlock}${recallBlock}${onboardingBlock}`
+  return `${personality}\n\n---\n\n${CAPABILITIES_PROMPT}\n${situationalBlock}${rlBlock}${memoryBlock}${shortTermBlock}${recallBlock}${onboardingBlock}`
+}
+
+/**
+ * Pull the last ~10 turns (user + assistant) for this channel's session
+ * and render them as a short-term memory block. Cross-channel leakage
+ * is intentional (if the user switched phones mid-conversation), but
+ * background channels (reflection / cron / proactive) never get short-
+ * term — they should stand on long-term memory alone so they don't
+ * accidentally "respond" to someone else's thread.
+ */
+function buildShortTermBlock(channel?: string): string {
+  const BACKGROUND_CHANNELS = new Set([
+    'reflection',
+    'cron',
+    'mission',
+    'proactive',
+    'morning',
+    'diary',
+  ])
+  if (channel && BACKGROUND_CHANNELS.has(channel)) return ''
+
+  try {
+    const sessionType = channel === 'telegram' ? 'telegram' : 'chat'
+    const turns = getRecentConversationsBySession(sessionType, 10)
+    if (turns.length === 0) return ''
+    const lines = turns.map((t) => {
+      const preview = t.content.replace(/\s+/g, ' ').slice(0, 500)
+      const ts = t.timestamp?.slice(11, 16) ?? '?'
+      return `[${ts} ${t.role}] ${preview}`
+    })
+    return [
+      '',
+      '# Short-term memory (recent turns, most recent last)',
+      '',
+      ...lines,
+      '',
+    ].join('\n')
+  } catch (err) {
+    console.warn('[agent] short-term block failed:', err)
+    return ''
+  }
 }
 
 function renderRLBlock(ctx: ChannelContext): string {
@@ -322,7 +440,23 @@ export async function runAgent(
     try {
       const mcpServer = createDotMcpServer()
 
-      // Remember the user's message for future semantic recall
+      // Persist the user's turn BEFORE building the system prompt — so
+      // short-term memory picks it up even on the very first reply after
+      // a process restart. Two substrates:
+      //   - conversations table (short-term verbatim, last 10 turns)
+      //   - semantic memory (long-term, vector-indexed)
+      const channel = runOpts?.channelContext?.channel
+      const sessionType =
+        channel === 'telegram'
+          ? 'telegram'
+          : channel && channel !== 'desktop'
+            ? channel
+            : 'chat'
+      try {
+        logConversation('user', prompt, sessionType)
+      } catch (err) {
+        console.warn('[agent] logConversation(user) failed:', err)
+      }
       rememberConversation('user', prompt).catch(() => {})
 
       const systemPrompt = await buildSystemPrompt(prompt, runOpts?.channelContext)
@@ -420,6 +554,8 @@ export async function runAgent(
             'mcp__nina__telegram_reply_photo',
             // Observability dashboard
             'mcp__nina__dot_timeline',
+            'mcp__nina__generate_report',
+            'mcp__nina__list_reports',
             'mcp__nina__bg_queue_status',
             'mcp__nina__presence_check',
             // Reversible destructive ops
@@ -464,7 +600,7 @@ export async function runAgent(
             'mcp__nina__set_character',
             'mcp__nina__get_character',
             // Plugin-contributed tools — enumerated at runtime so each
-            // new drop into ~/.nina/plugins/ becomes reachable without
+            // new drop into ~/.dot/plugins/ becomes reachable without
             // a code change. See core/plugin-loader.ts.
             ...listLoadedPlugins()
               .filter((p) => p.enabled)
@@ -573,8 +709,19 @@ export async function runAgent(
       }
 
       // Remember the assistant's response for future semantic recall
-      if (assistantFullText.trim().length > 10) {
-        rememberConversation('assistant', assistantFullText.trim()).catch(() => {})
+      // and short-term recall on the next turn. Telegram already calls
+      // logConversation in its own handler, so skip the short-term write
+      // in that channel to avoid double-logging.
+      const trimmedAssistant = assistantFullText.trim()
+      if (trimmedAssistant.length > 10) {
+        rememberConversation('assistant', trimmedAssistant).catch(() => {})
+        if (sessionType !== 'telegram') {
+          try {
+            logConversation('assistant', trimmedAssistant, sessionType)
+          } catch (err) {
+            console.warn('[agent] logConversation(assistant) failed:', err)
+          }
+        }
       }
 
       callbacks.onDone()

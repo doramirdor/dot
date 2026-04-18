@@ -1,6 +1,6 @@
 /**
  * Observability dashboard — renders Dot's recent activity as a self-contained
- * HTML file at ~/.nina/dashboard.html.
+ * HTML file at ~/.dot/dashboard.html.
  *
  * Pulls from SQLite (events, conversations, tool_calls, token_usage) and
  * in-memory state (cron, missions, bg-queue, telegram). Everything is
@@ -11,7 +11,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { NINA_DIR } from './memory.js'
+import { NINA_DIR, MINDMAP_FILE } from './memory.js'
 import { getDb, getTokenStats } from './db.js'
 import { listTasks as listCronTasks } from './cron.js'
 import { listMissions } from './missions.js'
@@ -19,6 +19,8 @@ import { bgQueueDepth, bgCurrent } from './bg-queue.js'
 import { telegramStatus } from './telegram.js'
 import { loadConfig } from './config.js'
 import { listRecentOps, getTrashStats } from './safe-ops.js'
+import { getMemoryStats } from './semantic-memory.js'
+import { getLastConsolidationAt } from './consolidation.js'
 
 const DASHBOARD_FILE = path.join(NINA_DIR, 'dashboard.html')
 
@@ -75,6 +77,45 @@ export function renderDashboard(): string {
     budget > 0 ? Math.min(100, Math.round((tokens.todayCostUsd / budget) * 100)) : 0
   const recentOps = listRecentOps(20)
   const trash = getTrashStats()
+
+  // Memory snapshot: what Dot knows.
+  const memStats = getMemoryStats()
+  const recentFacts = db
+    .prepare(
+      `SELECT content, source, created_at as createdAt
+       FROM memories
+       WHERE type = 'fact'
+       ORDER BY id DESC
+       LIMIT 20`,
+    )
+    .all() as Array<{ content: string; source: string; createdAt: string }>
+  const recentObservations = db
+    .prepare(
+      `SELECT content, source, created_at as createdAt
+       FROM memories
+       WHERE type = 'observation'
+       ORDER BY id DESC
+       LIMIT 20`,
+    )
+    .all() as Array<{ content: string; source: string; createdAt: string }>
+  const recentSummaries = db
+    .prepare(
+      `SELECT content, source, created_at as createdAt
+       FROM memories
+       WHERE type = 'summary'
+       ORDER BY id DESC
+       LIMIT 10`,
+    )
+    .all() as Array<{ content: string; source: string; createdAt: string }>
+  const lastConsolidation = getLastConsolidationAt()
+  let mindmapBody = ''
+  try {
+    const raw = fs.readFileSync(MINDMAP_FILE, 'utf8')
+    const match = raw.match(/```mermaid\n([\s\S]*?)```/)
+    mindmapBody = match?.[1]?.trim() ?? ''
+  } catch {
+    mindmapBody = ''
+  }
 
   const html = `<!doctype html>
 <html lang="en">
@@ -170,6 +211,21 @@ export function renderDashboard(): string {
     white-space: nowrap;
   }
   .wrap { white-space: pre-wrap; word-break: break-word; }
+  .knowledge-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+  .knowledge-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .knowledge-list li:last-child { border-bottom: none; }
+  .knowledge-list .ts { font-family: var(--mono); margin-right: 8px; }
   details { margin-bottom: 16px; }
   details summary {
     cursor: pointer;
@@ -244,7 +300,77 @@ export function renderDashboard(): string {
       <div class="value">${trash.slots}</div>
       <div class="hint">${(trash.totalBytes / 1024 / 1024).toFixed(1)} MB · ${recentOps.filter((o) => !o.reversed_at && o.reversible).length} reversible</div>
     </div>
+    <div class="card">
+      <div class="label">memory</div>
+      <div class="value">${memStats.total.toLocaleString()}</div>
+      <div class="hint">${memStats.facts} facts · ${memStats.conversations} chats · ${memStats.observations} obs · ${memStats.summaries} summ</div>
+    </div>
+    <div class="card">
+      <div class="label">consolidation</div>
+      <div class="value">${lastConsolidation ? formatAgo(Date.now() - lastConsolidation) : 'pending'}</div>
+      <div class="hint">ran ${lastConsolidation ? 'last tick' : 'never'} · every 20 min</div>
+    </div>
   </div>
+
+  <h2>What Dot knows</h2>
+  <div class="grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="label">facts (${memStats.facts})</div>
+      ${
+        recentFacts.length === 0
+          ? '<div class="hint">no facts stored yet — onboard or let Dot learn</div>'
+          : '<ul class="knowledge-list">' +
+            recentFacts
+              .map(
+                (f) =>
+                  `<li><span class="ts">${escapeHtml(f.createdAt.slice(5, 16))}</span> ${escapeHtml(f.content.slice(0, 220))}${f.source ? ` <span class="pill">${escapeHtml(f.source)}</span>` : ''}</li>`,
+              )
+              .join('') +
+            '</ul>'
+      }
+    </div>
+    <div class="card">
+      <div class="label">observations (${memStats.observations})</div>
+      ${
+        recentObservations.length === 0
+          ? '<div class="hint">no observations yet</div>'
+          : '<ul class="knowledge-list">' +
+            recentObservations
+              .map(
+                (o) =>
+                  `<li><span class="ts">${escapeHtml(o.createdAt.slice(5, 16))}</span> ${escapeHtml(o.content.slice(0, 220))}${o.source ? ` <span class="pill">${escapeHtml(o.source)}</span>` : ''}</li>`,
+              )
+              .join('') +
+            '</ul>'
+      }
+    </div>
+  </div>
+
+  ${
+    recentSummaries.length > 0
+      ? `<h2>Session summaries</h2>
+  <div class="card">
+    <ul class="knowledge-list">
+      ${recentSummaries
+        .map(
+          (s) =>
+            `<li><span class="ts">${escapeHtml(s.createdAt.slice(0, 16))}</span><div class="wrap" style="margin-top:4px">${escapeHtml(s.content.slice(0, 600))}</div></li>`,
+        )
+        .join('')}
+    </ul>
+  </div>`
+      : ''
+  }
+
+  ${
+    mindmapBody
+      ? `<h2>Mind map</h2>
+  <div class="card">
+    <pre class="wrap" style="font-family: var(--mono); font-size: 11px; color: var(--muted); margin: 0;">${escapeHtml(mindmapBody)}</pre>
+    <div class="hint" style="margin-top:8px">Paste into a mermaid renderer (mermaid.live) for a visual view. Auto-regenerated every 20 min.</div>
+  </div>`
+      : ''
+  }
 
   <h2>Cost by model</h2>
   <table>
@@ -386,6 +512,16 @@ export function renderDashboard(): string {
   fs.mkdirSync(path.dirname(DASHBOARD_FILE), { recursive: true })
   fs.writeFileSync(DASHBOARD_FILE, html, 'utf8')
   return DASHBOARD_FILE
+}
+
+function formatAgo(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  if (s < 60) return `${s}s ago`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
 }
 
 function escapeHtml(s: string): string {

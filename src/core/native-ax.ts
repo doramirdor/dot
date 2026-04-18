@@ -2,8 +2,8 @@
  * Native accessibility bridge — wraps the compiled nina-ax Swift helper.
  *
  * On first use:
- *   1. Copy assets/native/nina-ax.swift to ~/.nina/bin/nina-ax.swift
- *   2. Compile it with `swiftc` to ~/.nina/bin/nina-ax
+ *   1. Copy assets/native/nina-ax.swift to ~/.dot/bin/nina-ax.swift
+ *   2. Compile it with `swiftc` to ~/.dot/bin/nina-ax
  *   3. Run it — the first run triggers macOS's Accessibility TCC prompt
  *
  * The compiled binary outputs JSON to stdout. We parse it and return a
@@ -63,7 +63,7 @@ async function ensureCompiled(): Promise<void> {
       throw new Error('nina-ax.swift source not found')
     }
 
-    // Copy source into ~/.nina/bin for provenance
+    // Copy source into ~/.dot/bin for provenance
     const dstSrc = SRC_PATH
     try {
       fs.copyFileSync(sourceFile, dstSrc)

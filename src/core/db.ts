@@ -7,14 +7,16 @@
  *   - events (proactive interrupts, observations, system events)
  *   - audit log (same as tool_calls but queryable)
  *
- * DB lives at ~/.nina/nina.db. Schema auto-migrates on open.
+ * DB lives at ~/.dot/nina.db. Schema auto-migrates on open. The filename
+ * still uses "nina" for historical reasons — renaming it would trigger a
+ * fresh-install path on existing users.
  */
 import Database from 'better-sqlite3'
 import path from 'node:path'
-import os from 'node:os'
 import fs from 'node:fs'
+import { DOT_DIR } from './memory.js'
 
-const DB_PATH = path.join(os.homedir(), '.nina', 'nina.db')
+const DB_PATH = path.join(DOT_DIR, 'nina.db')
 
 let db: Database.Database | null = null
 

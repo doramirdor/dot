@@ -282,7 +282,7 @@ export function createDotTools(): DotTool[] {
         const result = await ax.checkAccessibility()
         if (result.error) return textResult(`error: ${result.error}`)
         return textResult(
-          `trusted: ${result.trusted}\ncompiled: ${result.compiled}${!result.trusted ? '\n\nTo grant: System Settings → Privacy & Security → Accessibility → enable ~/.nina/bin/nina-ax' : ''}`,
+          `trusted: ${result.trusted}\ncompiled: ${result.compiled}${!result.trusted ? '\n\nTo grant: System Settings → Privacy & Security → Accessibility → enable ~/.dot/bin/nina-ax' : ''}`,
         )
       },
     },
@@ -709,7 +709,7 @@ export function createDotTools(): DotTool[] {
       name: 'dot_safe_write',
       label: 'Files: Safe Write',
       description:
-        'REVERSIBLE file write. Snapshots prior contents to ~/.nina/trash/ before writing. Returns an undo_id for dot_undo.',
+        'REVERSIBLE file write. Snapshots prior contents to ~/.dot/trash/ before writing. Returns an undo_id for dot_undo.',
       parameters: Type.Object({
         path: Type.String({ description: 'Absolute or relative path to write' }),
         content: Type.String({ description: 'New file contents' }),
@@ -725,7 +725,7 @@ export function createDotTools(): DotTool[] {
       name: 'dot_safe_delete',
       label: 'Files: Safe Delete',
       description:
-        'REVERSIBLE file deletion. Moves the file to ~/.nina/trash/ instead of unlinking. Returns an undo_id for dot_undo.',
+        'REVERSIBLE file deletion. Moves the file to ~/.dot/trash/ instead of unlinking. Returns an undo_id for dot_undo.',
       parameters: Type.Object({
         path: Type.String({ description: 'Absolute or relative path to delete' }),
         reason: Type.Optional(Type.String({ description: 'Why the user wants this deleted' })),
@@ -759,7 +759,7 @@ export function createDotTools(): DotTool[] {
         const ops = listRecentOps(20)
         const { slots, totalBytes } = getTrashStats()
         const lines: string[] = []
-        lines.push(`trash: ${slots} slots, ${(totalBytes / 1024 / 1024).toFixed(1)} MB at ~/.nina/trash`)
+        lines.push(`trash: ${slots} slots, ${(totalBytes / 1024 / 1024).toFixed(1)} MB at ~/.dot/trash`)
         lines.push('')
         lines.push('recent operations:')
         if (ops.length === 0) {

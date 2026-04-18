@@ -4,12 +4,12 @@
  * Four layers, each mapped to a directory Dot is allowed to rewrite:
  *
  *   - core    → src/core/           (new modules, tool registrations)
- *   - skills  → ~/.nina/plugins/    (user-extendable skills added at runtime)
- *   - brain   → ~/.nina/memory/     (MEMORY.md, mindmap.md — semantic DB is off-limits)
- *   - heart   → ~/.nina/memory/PERSONALITY.md (tone, character, values)
+ *   - skills  → ~/.dot/plugins/    (user-extendable skills added at runtime)
+ *   - brain   → ~/.dot/memory/     (MEMORY.md, mindmap.md — semantic DB is off-limits)
+ *   - heart   → ~/.dot/memory/PERSONALITY.md (tone, character, values)
  *
  * Every rewrite is preceded by a full tar snapshot of the target layer
- * into ~/.nina/trash/<ts>/, logged to undo_log. `undoOperation(id)` will
+ * into ~/.dot/trash/<ts>/, logged to undo_log. `undoOperation(id)` will
  * restore the snapshot verbatim — so every self-rewrite is reversible.
  *
  * The actual edit is delegated to `runClaudeCode()` in a subprocess
@@ -185,14 +185,14 @@ function buildPromptFor(req: RewriteRequest): string {
       'This is src/core/. You may add new modules, extend existing ones, ' +
       'or register new MCP tools via mcp-tools.ts. Keep imports relative, ' +
       'use the memory.ts path constants (NINA_DIR, MEMORY_DIR) — never ' +
-      'hardcode ~/.nina. Every destructive op should go through safe-ops.',
+      'hardcode ~/.dot. Every destructive op should go through safe-ops.',
     skills:
-      'This is ~/.nina/plugins/. Each plugin is a .ts or .js module with ' +
+      'This is ~/.dot/plugins/. Each plugin is a .ts or .js module with ' +
       'a default export implementing the plugin interface: { name, tools: [] }. ' +
       'Tools follow the same shape as core/mcp-tools.ts. See other plugins ' +
       'here for the pattern.',
     brain:
-      'This is ~/.nina/memory/. You may edit MEMORY.md, mindmap.md, and ' +
+      'This is ~/.dot/memory/. You may edit MEMORY.md, mindmap.md, and ' +
       'individual memory files, but NEVER touch the semantic memory ' +
       'SQLite DB (it lives outside this directory). Keep MEMORY.md an ' +
       'index of one-line pointers — under 200 lines total.',

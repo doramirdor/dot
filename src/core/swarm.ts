@@ -5,7 +5,7 @@
  * repos, research 4 companies, check 8 URLs), she picks `swarm_dispatch`
  * instead of a serial loop. Each swarm member:
  *
- *   - gets its own workspace at `~/.nina/swarm/<runId>/<idx>/`
+ *   - gets its own workspace at `~/.dot/swarm/<runId>/<idx>/`
  *   - starts with a fresh session (no conversation history)
  *   - runs with a tight tool allowlist (no telegram, no self-rewrite,
  *     no mission control — a swarm member is a scoped worker, not a
@@ -17,7 +17,7 @@
  * when Dot gets ambitious. Timeouts are per-task (default 3 min).
  *
  * The workspace dirs are NOT auto-cleaned — they live under
- * `~/.nina/swarm/` for later inspection + replay. Sweep them manually
+ * `~/.dot/swarm/` for later inspection + replay. Sweep them manually
  * or add a retention job later (not in scope for this file).
  */
 import fs from 'node:fs'

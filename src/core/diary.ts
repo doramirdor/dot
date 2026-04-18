@@ -24,10 +24,10 @@ File: ${filePath}
 
 Process:
 
-1. Read ~/.nina/memory/activity_log.md to see what the user did today. If it
+1. Read ~/.dot/memory/activity_log.md to see what the user did today. If it
    doesn't exist or is empty, write about the quiet. Don't fabricate activity.
 
-2. Optionally skim recent entries in ~/.nina/memory/diary/ (the last 2-3 days)
+2. Optionally skim recent entries in ~/.dot/memory/diary/ (the last 2-3 days)
    to keep continuity — don't repeat yourself, but small callbacks are fine.
 
 3. Write ONE diary entry to ${filePath}. Format:

@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { NINA_DIR } from './memory.js'
+import { remember as semanticRemember } from './semantic-memory.js'
 
 const CLIPBOARD_FILE = path.join(NINA_DIR, 'clipboard-history.json')
 const POLL_MS = 800
@@ -74,6 +75,16 @@ function tick(): void {
     entries.unshift({ text, timestamp: new Date().toISOString() })
     if (entries.length > MAX_ENTRIES) entries.length = MAX_ENTRIES
     saveEntries()
+
+    // Index into semantic memory so copied content is searchable even
+    // after the ring buffer has rolled over. Skip very short or clearly
+    // non-substantive snippets (single tokens, paths, numbers only).
+    const trimmed = text.trim()
+    if (trimmed.length >= 30 && /\s/.test(trimmed)) {
+      semanticRemember(`clipboard: ${trimmed.slice(0, 1500)}`, 'observation', 'clipboard').catch(
+        () => {},
+      )
+    }
   } catch {
     // ignore — pbpaste can fail transiently
   }

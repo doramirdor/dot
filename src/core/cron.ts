@@ -5,7 +5,7 @@
  * 5-field cron expression and a prompt; the supervisor ticks once per minute
  * and fires any task whose expression matches the current minute.
  *
- * State lives at ~/.nina/cron.json (single file, small, human-editable).
+ * State lives at ~/.dot/cron.json (single file, small, human-editable).
  * Fires run through runAgent so tasks have full tool access, same as missions.
  *
  * Cron expression: "min hour dom month dow"

@@ -3,7 +3,7 @@
  *
  * Dot uses the `security` CLI (ships with every Mac, no dependencies) to
  * store and retrieve credentials instead of reading them from plaintext
- * ~/.nina/config.json or ~/.openclaw/.... All reads/writes happen in-process
+ * ~/.dot/config.json or ~/.openclaw/.... All reads/writes happen in-process
  * under the user's login keychain — nothing ever touches disk in plaintext
  * through this module.
  *

@@ -52,7 +52,7 @@ export function App() {
   const historyIndexRef = useRef<number>(-1)
   const draftRef = useRef<string>('') // what the user was typing before they started recalling
   const speechTimer = useRef<number | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // No auto-dismiss timer. The bubble stays until:
   //   - The user sends a new command (pet:clear fires)
@@ -266,7 +266,15 @@ export function App() {
 
   useEffect(() => {
     if (inputOpen) inputRef.current?.focus()
-  }, [inputOpen])
+    // Auto-resize the textarea to fit its content, capped by max-height
+    // in the CSS. Reset first so height can shrink when the user deletes.
+    // Depends on `value` so it re-runs every keystroke.
+    if (inputRef.current) {
+      const el = inputRef.current
+      el.style.height = 'auto'
+      el.style.height = `${el.scrollHeight}px`
+    }
+  }, [inputOpen, value])
 
   async function submit() {
     const prompt = value.trim()
@@ -288,8 +296,9 @@ export function App() {
     await window.nina.sendCommand(prompt)
   }
 
-  function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
+  function onInputKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
       submit()
       return
     }
@@ -523,12 +532,13 @@ export function App() {
         {/* Input bubble — just below her */}
         {inputOpen && !pendingPermission && (
           <div className="comic-input">
-            <input
+            <textarea
               ref={inputRef}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={onInputKeyDown}
-              placeholder="what can I do?  ↑ for history"
+              placeholder="what can I do?  ⇧↩ for newline · ↑ for history"
+              rows={1}
             />
           </div>
         )}

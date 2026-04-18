@@ -7,7 +7,7 @@
  *
  *   1. Scans /Applications, ~/Applications, /System/Applications,
  *      and /System/Applications/Utilities (via system-control.listInstalledApps)
- *   2. Persists the result to ~/.nina/app-index.json with a timestamp
+ *   2. Persists the result to ~/.dot/app-index.json with a timestamp
  *   3. Refreshes on morning ritual, on explicit request, or when a lookup
  *      misses (self-heals without user intervention)
  *   4. Resolves names fuzzily — "safari" matches "Safari", "music" matches

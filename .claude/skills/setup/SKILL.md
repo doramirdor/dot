@@ -46,6 +46,8 @@ If this fails with a compiler error, note it and continue — Dot will still boo
 
 Dot needs an Anthropic credential. **Dot never reads from other tools' config files silently** — if openclaw has a token, we'll offer to import it explicitly.
 
+> **Also available at runtime:** the first time Dot boots without a credential she opens a provider-setup window (Anthropic / Bedrock / Vertex / OpenAI) and, when a legacy openclaw token is detected, offers a one-click "Import" checkbox. The user can re-open this window anytime via the tray **"Setup provider…"** item or by typing **`/provider`** in the chat. If you've already configured credentials by running the commands below, Dot skips the window and boots straight through.
+
 Check the three native sources first:
 
 ```bash

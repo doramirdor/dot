@@ -6,7 +6,7 @@
  * here that:
  *
  *   1. Captures the original state
- *   2. Moves it to ~/.nina/trash/<iso-ts>/<original-path>/  (files)
+ *   2. Moves it to ~/.dot/trash/<iso-ts>/<original-path>/  (files)
  *      OR applies a reversible label (gmail)
  *   3. Logs an undo_log row with reversal steps
  *   4. Returns an undo_id the caller can use to reverse
@@ -52,7 +52,7 @@ function trashSlot(): string {
 }
 
 /**
- * Reversible file delete. Moves the target to ~/.nina/trash/ instead of
+ * Reversible file delete. Moves the target to ~/.dot/trash/ instead of
  * unlinking. Works for files and directories. Returns an undo_id.
  */
 export function safeDeleteFile(
@@ -64,7 +64,7 @@ export function safeDeleteFile(
     return { ok: false, error: `path does not exist: ${abs}` }
   }
   // Guardrails — never trash anything outside the user's home, never
-  // trash the trash dir itself, never trash ~/.nina entirely. Use
+  // trash the trash dir itself, never trash ~/.dot entirely. Use
   // path.relative + '..' check instead of a string prefix so that a
   // sibling home (e.g. /Users/ellabaror-evil when home=/Users/ellabaror)
   // is correctly rejected.

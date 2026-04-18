@@ -142,7 +142,7 @@ export async function runMorningLoop(): Promise<MorningLoopResult> {
       draftCount: 0,
       sentCount: 0,
       skippedCount: 0,
-      error: 'no telegramPrimaryChatId set in ~/.nina/config.json — Morning Loop needs somewhere to push drafts',
+      error: 'no telegramPrimaryChatId set in ~/.dot/config.json — Morning Loop needs somewhere to push drafts',
     }
   }
   if (!isTelegramRunning()) {

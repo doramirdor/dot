@@ -168,7 +168,8 @@ body,
   margin-top: 2px;
 }
 
-.comic-input input {
+.comic-input input,
+.comic-input textarea {
   width: 100%;
   border: none;
   outline: none;
@@ -176,9 +177,15 @@ body,
   font: inherit;
   font-size: 13px;
   color: #1a1a2e;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.4;
+  max-height: 160px;
+  overflow-y: auto;
 }
 
-.comic-input input::placeholder {
+.comic-input input::placeholder,
+.comic-input textarea::placeholder {
   color: #9ca3af;
   font-size: 12px;
 }

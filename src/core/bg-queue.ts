@@ -78,7 +78,7 @@ export function enqueue(job: BgJob): Promise<BgJobResult> {
           resolve({
             status: 'error',
             text: '',
-            error: `daily budget reached ($${today.toFixed(4)} of $${cap.toFixed(2)}). background job "${job.label}" skipped. use foreground chat or raise dailyBudgetUsd in ~/.nina/config.json.`,
+            error: `daily budget reached ($${today.toFixed(4)} of $${cap.toFixed(2)}). background job "${job.label}" skipped. use foreground chat or raise dailyBudgetUsd in ~/.dot/config.json.`,
             durationMs: 0,
           })
           return

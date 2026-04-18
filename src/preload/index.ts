@@ -108,6 +108,14 @@ const api = {
   showMemory: (): Promise<void> => ipcRenderer.invoke('pet:show-memory'),
   showMindmap: (): Promise<void> => ipcRenderer.invoke('pet:show-mindmap'),
 
+  // --- provider setup window ---
+  providerSetupSave: (payload: {
+    providerId: string
+    credential?: string
+    model?: string
+    importOpenclaw?: boolean
+  }): Promise<void> => ipcRenderer.invoke('provider-setup:save', payload),
+
   // --- voice ---
   voiceStatus: (): Promise<VoiceStatus> => ipcRenderer.invoke('pet:voice-status'),
   voiceEnable: (): Promise<void> => ipcRenderer.invoke('pet:voice-enable'),

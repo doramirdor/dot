@@ -14,14 +14,18 @@ import fs from 'node:fs'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { loadAnthropicToken, applyAnthropicCredential } from '../core/config.js'
+import { resolveActiveProvider } from '../core/providers.js'
+import { openProviderSetupWindow } from './provider-setup.js'
 import { runAgent, type AgentHandle, type RunOptions } from '../core/agent.js'
 import { closeBrowser } from '../core/browser.js'
 import {
+  ensureDotDirMigrated,
   ensureMemoryDir,
   isFirstRun,
   ONBOARDING_PROMPT,
   MEMORY_DIR,
   MINDMAP_FILE,
+  DOT_DIR,
   NINA_DIR,
 } from '../core/memory.js'
 import {
@@ -62,6 +66,7 @@ import {
   openCapabilitiesWindow,
 } from './capabilities.js'
 import { initSemanticMemory } from '../core/semantic-memory.js'
+import { startConsolidationLoop, stopConsolidationLoop } from '../core/consolidation.js'
 import { initRL, stopRL } from '../core/rl/index.js'
 import { loadAllPlugins } from '../core/plugin-loader.js'
 import { registerChannel } from '../core/channels/index.js'
@@ -281,6 +286,16 @@ function rebuildTrayMenu() {
       click: () => openCapabilitiesWindow(() => rebuildTrayMenu()),
     },
     {
+      label: 'Setup provider…',
+      click: () => {
+        void ensureProviderReady(true).then((ok) => {
+          if (ok) {
+            win?.webContents.send('pet:stream', 'provider saved ✓')
+          }
+        })
+      },
+    },
+    {
       label: 'Reflect now',
       click: async () => {
         tray?.setToolTip('Dot · reflecting…')
@@ -430,7 +445,7 @@ function openMindMap() {
   <div class="card">
     <pre class="mermaid">${diagram.replace(/[<&>]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]!))}</pre>
   </div>
-  <footer>Updated live by Dot · ~/.nina/memory/mindmap.md</footer>
+  <footer>Updated live by Dot · ~/.dot/memory/mindmap.md</footer>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
     mermaid.initialize({ startOnLoad: true, theme: 'default' })
@@ -768,20 +783,55 @@ if (process.argv.includes('--migrate')) {
   })
 }
 
-app.whenReady().then(() => {
+/**
+ * Gate on a ready provider. In HEADLESS mode (no UI surface to prompt on)
+ * we just log and let the first agent call surface the SDK error. In
+ * windowed mode we open the provider-setup window and await its close.
+ * Idempotent — safe to call multiple times (menu / command re-entry).
+ */
+async function ensureProviderReady(forcePrompt = false): Promise<boolean> {
+  const active = resolveActiveProvider()
+  if (active.ready && !forcePrompt) {
+    const token = loadAnthropicToken()
+    if (token) applyAnthropicCredential(token)
+    return true
+  }
+  if (HEADLESS) {
+    console.warn(
+      '[dot] no provider credential — headless mode cannot prompt. Run `npm run dev` once to configure, or set CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY.',
+    )
+    return false
+  }
+  const result = await openProviderSetupWindow()
+  if (result.saved) {
+    const token = loadAnthropicToken()
+    if (token) applyAnthropicCredential(token)
+    console.log(`[dot] provider configured: ${result.providerId}`)
+    return true
+  }
+  return false
+}
+
+app.whenReady().then(async () => {
+  // First thing, before ANY file I/O: migrate the legacy ~/.dot data
+  // directory to ~/.dot if we haven't already. Idempotent, safe on fresh
+  // installs. See ensureDotDirMigrated() for the contract.
+  ensureDotDirMigrated()
+
   if (process.argv.includes('--migrate')) return
-  const token = loadAnthropicToken()
-  if (token) {
-    applyAnthropicCredential(token)
-    console.log('[dot] Loaded anthropic credential from openclaw')
-  } else {
-    console.warn('[dot] No anthropic token found. Set CLAUDE_CODE_OAUTH_TOKEN or configure openclaw.')
-    // Surface to the user after the window loads.
+  // Credential gate. Block startup only in windowed mode when no provider is
+  // ready — show the setup window and await a choice. In headless mode just
+  // log; the first call will fail loudly rather than silently.
+  const ready = await ensureProviderReady()
+  if (!ready && !HEADLESS) {
+    // User cancelled the setup window. Let them open the pet anyway — the
+    // first turn will emit a clear error and they can retry via the tray
+    // "Setup provider…" item or `/provider`.
     app.once('browser-window-created', () => {
       setTimeout(() => {
         win?.webContents.send(
           'pet:error',
-          'no API key found. set CLAUDE_CODE_OAUTH_TOKEN or configure openclaw to use nina.',
+          'no provider configured. open the tray menu → "Setup provider…" or type /provider to connect one.',
         )
       }, 2000)
     })
@@ -858,7 +908,7 @@ app.whenReady().then(() => {
   } catch (err) {
     console.warn('[dot] RL init failed (non-critical):', err)
   }
-  // Plugins: scan ~/.nina/plugins so contributed tools are present by
+  // Plugins: scan ~/.dot/plugins so contributed tools are present by
   // the first turn. Fire-and-forget — dynamic import is async but the
   // renderer spinner doesn't need to wait on it.
   loadAllPlugins()
@@ -1049,6 +1099,12 @@ app.whenReady().then(() => {
     60 * 60 * 1000, // hourly check
   )
 
+  // Short-tick consolidation: runs every 20 min, extracts facts from
+  // the last 2 hours of conversation and regenerates the mindmap.
+  // Keeps long-term memory and the mindmap evolving continuously —
+  // the daily reflection at 9pm still runs for the deeper pass.
+  startConsolidationLoop()
+
   scheduleDailyReflection(21, (result) => {
     if (result.error) {
       console.warn('[dot] Reflection failed:', result.error)
@@ -1140,6 +1196,7 @@ app.on('before-quit', async (e) => {
   stopObservationLoop()
   stopDailyReflection()
   stopDailyDiary()
+  stopConsolidationLoop()
   stopScreenWatcher()
   stopClipboardWatcher()
   stopMissionSupervisor()
@@ -1156,7 +1213,7 @@ app.on('before-quit', async (e) => {
   globalShortcut.unregisterAll()
   // Don't call closeBrowser() — it triggers Chromium's graceful shutdown
   // which briefly flashes the last visited page (e.g. getnadir.com).
-  // The browser profile persists at ~/.nina/browser-profile/ regardless,
+  // The browser profile persists at ~/.dot/browser-profile/ regardless,
   // and the OS kills the Chromium process when Electron exits.
 
   if (farewellStarted || sigintQuit) {
@@ -1187,6 +1244,17 @@ const CAPABILITIES_COMMANDS = new Set([
   '/capabilities',
   '/permissions',
   '/settings',
+])
+
+const PROVIDER_COMMANDS = new Set([
+  '/provider',
+  '/providers',
+  '/setup',
+  'setup provider',
+  'change provider',
+  'switch provider',
+  'connect api',
+  'connect api key',
 ])
 
 const END_ONBOARDING_COMMANDS = new Set([
@@ -1421,6 +1489,15 @@ ipcMain.handle('pet:command', async (_e, prompt: string) => {
   }
   if (CAPABILITIES_COMMANDS.has(normalized)) {
     openCapabilitiesWindow(() => rebuildTrayMenu())
+    return
+  }
+  if (PROVIDER_COMMANDS.has(normalized)) {
+    win?.webContents.send('pet:stream', 'opening provider setup…')
+    const ok = await ensureProviderReady(true)
+    win?.webContents.send(
+      'pet:stream',
+      ok ? 'provider saved ✓ try talking to me now.' : 'no provider configured yet.',
+    )
     return
   }
   if (ONBOARD_COMMANDS.has(normalized)) {

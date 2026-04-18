@@ -1,10 +1,10 @@
 /**
- * core/plugin-loader.ts — load user + community plugins from ~/.nina/plugins.
+ * core/plugin-loader.ts — load user + community plugins from ~/.dot/plugins.
  *
  * Each plugin lives at:
- *   ~/.nina/plugins/<name>/plugin.js         (ESM or CJS, user-authored or built)
- *   ~/.nina/plugins/<name>/plugin.mjs        (alternative name)
- *   ~/.nina/plugins/<name>/package.json      (optional, read for `main` and metadata)
+ *   ~/.dot/plugins/<name>/plugin.js         (ESM or CJS, user-authored or built)
+ *   ~/.dot/plugins/<name>/plugin.mjs        (alternative name)
+ *   ~/.dot/plugins/<name>/package.json      (optional, read for `main` and metadata)
  *
  * A plugin exports an object matching the `DotPlugin` interface below.
  * The key piece is `tools: ToolDef[]` — each tool has the same shape as
@@ -226,7 +226,7 @@ export function buildPluginTools(): ReturnType<typeof tool>[] {
 
 const PLUGIN_README = `# Dot plugins
 
-Drop a folder here (\`~/.nina/plugins/<name>/\`) containing either a
+Drop a folder here (\`~/.dot/plugins/<name>/\`) containing either a
 \`plugin.mjs\`, \`plugin.js\`, or a \`package.json\` pointing at your
 entry file. The module should default-export a \`DotPlugin\`:
 

@@ -11,7 +11,7 @@
  * the RL policy includes a `character_form` column, and Dot's reply
  * handler picks the form that scored best in the current bucket.
  *
- * Community characters: drop a file at ~/.nina/characters/<id>/char.json
+ * Community characters: drop a file at ~/.dot/characters/<id>/char.json
  * with the same shape. Main process scans that dir on startup and sends
  * the extra entries over IPC. (Loader lives in main/index.ts wiring —
  * this file is the registry shape only.)

@@ -1,9 +1,9 @@
 import path from 'node:path'
-import os from 'node:os'
 import fs from 'node:fs'
 import { chromium, type BrowserContext, type Page } from 'playwright'
+import { DOT_DIR } from './memory.js'
 
-const PROFILE_DIR = path.join(os.homedir(), '.nina', 'browser-profile')
+const PROFILE_DIR = path.join(DOT_DIR, 'browser-profile')
 
 let context: BrowserContext | null = null
 let page: Page | null = null

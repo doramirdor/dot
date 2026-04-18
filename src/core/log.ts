@@ -1,16 +1,16 @@
 /**
  * Tiny append-only logger for Dot's runtime — ticks, advisories, escalations.
  *
- * Writes to ~/.nina/logs/dot.log, one line per event, JSON-ish but readable.
- * Intended for `tail -f ~/.nina/logs/dot.log` during dev.
+ * Writes to ~/.dot/logs/dot.log, one line per event, JSON-ish but readable.
+ * Intended for `tail -f ~/.dot/logs/dot.log` during dev.
  *
  * Auto-rotates when the file exceeds MAX_BYTES — keeps the last half.
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import os from 'node:os'
+import { DOT_DIR } from './memory.js'
 
-const LOG_DIR = path.join(os.homedir(), '.nina', 'logs')
+const LOG_DIR = path.join(DOT_DIR, 'logs')
 export const LOG_FILE = path.join(LOG_DIR, 'dot.log')
 
 const MAX_BYTES = 1024 * 1024 // 1 MB

@@ -10,14 +10,14 @@
  *   - "manual" — user picks which categories to enable; disabled categories
  *     are either blocked or require per-action confirmation
  *
- * Persisted at ~/.nina/capabilities.json. The trust layer reads this before
+ * Persisted at ~/.dot/capabilities.json. The trust layer reads this before
  * classifying each tool call.
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import os from 'node:os'
+import { DOT_DIR } from './memory.js'
 
-const CAPS_FILE = path.join(os.homedir(), '.nina', 'capabilities.json')
+const CAPS_FILE = path.join(DOT_DIR, 'capabilities.json')
 
 export interface Capability {
   id: string

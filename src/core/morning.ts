@@ -42,7 +42,7 @@ Today is ${dayOfWeek}, ${dateStr}.
 
 Beats (pick 2-4, weave them naturally, never all in the same order):
   1. A light context anchor (day of week, time of day, season — not "good morning")
-  2. One overnight thought: skim the latest diary entry in ~/.nina/memory/diary/
+  2. One overnight thought: skim the latest diary entry in ~/.dot/memory/diary/
      if it exists, and reference it in a short, non-literal way. Don't quote it.
   3. Something about today if you know it (from calendar memory, projects.md,
      workflows.md). Skip if you don't know.
@@ -65,7 +65,7 @@ Examples of the right feel (do NOT copy — write something specific to today):
    your 11am moved, by the way"
 
 Tool use:
-- Read the latest 1-2 files in ~/.nina/memory/diary/ (it's in your cwd)
+- Read the latest 1-2 files in ~/.dot/memory/diary/ (it's in your cwd)
 - Read projects.md, user_profile.md, preferences.md if they might help
 - Do NOT use the browser or bash for this. Memory-only.
 

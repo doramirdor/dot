@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import os from 'node:os'
 import { getSecret, setSecret } from './keychain.js'
+import { DOT_DIR } from './memory.js'
 
-const NINA_CONFIG_PATH = path.join(os.homedir(), '.nina', 'config.json')
+const NINA_CONFIG_PATH = path.join(DOT_DIR, 'config.json')
 
 // =========== Nina config ===========
 
@@ -75,53 +75,15 @@ export function ensureConfigFile(): void {
 
 // =========== Anthropic credential loading ===========
 
-interface AuthProfile {
-  type: 'token' | 'oauth' | 'api_key'
-  provider: string
-  token?: string
-  access?: string
-  apiKey?: string
-}
-
-interface AuthProfilesFile {
-  profiles?: Record<string, AuthProfile>
-}
-
+/**
+ * Read an Anthropic credential from the Keychain or the environment. Does
+ * NOT read ~/.openclaw/... — Dot no longer silently imports sibling tools'
+ * credentials. The first-run setup UI offers an explicit "import openclaw
+ * token" action via providers.findLegacyOpenclawToken().
+ */
 export function loadAnthropicToken(): string | null {
-  // 1. Prefer Keychain — the only place we want this long-term.
   const keychainToken = getSecret('anthropic-token')
   if (keychainToken) return keychainToken
-
-  // 2. Fall back to legacy plaintext, then automatically migrate into
-  //    the Keychain so subsequent boots read from the secure store.
-  const candidatePaths = [
-    path.join(os.homedir(), '.openclaw/agents/main/agent/auth-profiles.json'),
-  ]
-
-  for (const p of candidatePaths) {
-    if (!fs.existsSync(p)) continue
-    try {
-      const data = JSON.parse(fs.readFileSync(p, 'utf8')) as AuthProfilesFile
-      const profile = data.profiles?.['anthropic:default']
-      if (!profile) continue
-      let token: string | null = null
-      if (profile.type === 'token' && profile.token) token = profile.token
-      else if (profile.type === 'oauth' && profile.access) token = profile.access
-      else if (profile.type === 'api_key' && profile.apiKey) token = profile.apiKey
-      if (token) {
-        // Best-effort migration. Failure is non-fatal.
-        if (setSecret('anthropic-token', token)) {
-          console.log('[nina] migrated Anthropic token to macOS Keychain')
-        }
-        return token
-      }
-    } catch (err) {
-      console.warn(`[nina] Failed to parse ${p}:`, err)
-    }
-  }
-
-  // 3. Env vars as a last resort (never auto-migrated — env is often
-  //    transient and we don't want to capture a one-off shell token).
   return (
     process.env.CLAUDE_CODE_OAUTH_TOKEN ||
     process.env.ANTHROPIC_API_KEY ||

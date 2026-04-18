@@ -2,7 +2,7 @@
  * Telegram bot channel for Dot.
  *
  * Long-poll based (no webhook / no public URL). Reads the bot token from
- * ~/.nina/config.json (telegramBotToken field) or TELEGRAM_BOT_TOKEN env var.
+ * ~/.dot/config.json (telegramBotToken field) or TELEGRAM_BOT_TOKEN env var.
  * If neither is present, startTelegram() is a no-op — safe to always call.
  *
  * Each incoming message is routed through bg-queue so a chat burst can't
@@ -11,7 +11,7 @@
  * otherwise anyone with the bot handle can talk to your Dot. Set an
  * allowlist in config.json for safety.
  *
- * Config shape (added to ~/.nina/config.json):
+ * Config shape (added to ~/.dot/config.json):
  *   {
  *     "telegramBotToken": "123456:ABC...",
  *     "telegramAllowedChatIds": [12345678]
@@ -28,7 +28,8 @@ import {
 } from './db.js'
 import { getSecret, setSecret } from './keychain.js'
 
-const CONFIG_PATH = path.join(os.homedir(), '.nina', 'config.json')
+import { DOT_DIR } from './memory.js'
+const CONFIG_PATH = path.join(DOT_DIR, 'config.json')
 const API_BASE = 'https://api.telegram.org/bot'
 
 interface TelegramConfig {
@@ -551,7 +552,7 @@ export async function startTelegram(): Promise<void> {
   if (running) return
   const token = readToken()
   if (!token) {
-    console.log('[telegram] no token configured — skipping (set telegramBotToken in ~/.nina/config.json)')
+    console.log('[telegram] no token configured — skipping (set telegramBotToken in ~/.dot/config.json)')
     return
   }
   // SECURITY: refuse to boot Telegram without an explicit chat allowlist.
@@ -560,7 +561,7 @@ export async function startTelegram(): Promise<void> {
   const allow = readAllowlist()
   if (!allow || allow.size === 0) {
     console.error(
-      '[telegram] REFUSING TO START: telegramAllowedChatIds is empty or missing in ~/.nina/config.json. ' +
+      '[telegram] REFUSING TO START: telegramAllowedChatIds is empty or missing in ~/.dot/config.json. ' +
       'An open bot would give strangers full tool access. Add your numeric chat id to the allowlist and restart.',
     )
     logEvent('telegram.refused_boot', { reason: 'empty_allowlist' })

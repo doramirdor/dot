@@ -8,7 +8,7 @@
  * - Farewell message (pre-computed "one good thing" shown on quit)
  * - New-day detection
  *
- * All persistence is plain JSON in ~/.nina/memory/. No ORM, no migrations.
+ * All persistence is plain JSON in ~/.dot/memory/. No ORM, no migrations.
  */
 import fs from 'node:fs'
 import path from 'node:path'

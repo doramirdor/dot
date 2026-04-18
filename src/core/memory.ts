@@ -2,12 +2,65 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 
-export const NINA_DIR = path.join(os.homedir(), '.nina')
-export const MEMORY_DIR = path.join(NINA_DIR, 'memory')
+/**
+ * Dot's data directory. Resolution order:
+ *   1. $DOT_HOME if set (lets advanced users point Dot at any path)
+ *   2. ~/.dot (default)
+ *
+ * The directory used to be ~/.nina; `ensureDotDirMigrated()` handles the
+ * one-time rename so existing installs don't lose data. See its comment
+ * for the migration contract. Keep DOT_DIR as the single source of truth
+ * — never hardcode ~/.dot or ~/.nina anywhere else.
+ */
+export const DOT_DIR =
+  process.env['DOT_HOME'] && process.env['DOT_HOME'].length > 0
+    ? process.env['DOT_HOME']
+    : path.join(os.homedir(), '.dot')
+
+/** Legacy alias. Prefer DOT_DIR in new code. */
+export const NINA_DIR = DOT_DIR
+
+export const MEMORY_DIR = path.join(DOT_DIR, 'memory')
 export const INDEX_FILE = path.join(MEMORY_DIR, 'MEMORY.md')
 export const MINDMAP_FILE = path.join(MEMORY_DIR, 'mindmap.md')
 export const PERSONALITY_FILE = path.join(MEMORY_DIR, 'PERSONALITY.md')
 export const AUDIT_LOG_FILE = path.join(MEMORY_DIR, 'audit.log')
+
+/**
+ * One-time migration from the legacy ~/.nina directory. If the user has
+ * DOT_HOME set, or if ~/.dot already exists, do nothing — they're past
+ * this. Otherwise rename ~/.nina → ~/.dot in a single fs.renameSync.
+ *
+ * Called explicitly from main startup (not here) so test code / headless
+ * tooling can opt out. Idempotent. Safe to call on a fresh install
+ * (no-op when ~/.nina doesn't exist either).
+ */
+export function ensureDotDirMigrated(): void {
+  // If DOT_HOME is explicitly set, the user is driving — don't touch.
+  if (process.env['DOT_HOME']) return
+
+  const legacyDir = path.join(os.homedir(), '.nina')
+  const newDir = path.join(os.homedir(), '.dot')
+
+  if (fs.existsSync(newDir)) return // already migrated or fresh install
+  if (!fs.existsSync(legacyDir)) return // nothing to migrate
+
+  try {
+    fs.renameSync(legacyDir, newDir)
+    console.log(`[dot] migrated data directory ${legacyDir} → ${newDir}`)
+  } catch (err) {
+    // Rename can fail if ~/.nina and ~/.dot are on different volumes.
+    // In that case fall back to copying, then remove the old tree.
+    console.warn('[dot] rename migration failed, falling back to copy:', err)
+    try {
+      fs.cpSync(legacyDir, newDir, { recursive: true })
+      fs.rmSync(legacyDir, { recursive: true, force: true })
+      console.log(`[dot] copy-migrated ${legacyDir} → ${newDir}`)
+    } catch (err2) {
+      console.warn('[dot] copy migration also failed — Dot will start fresh:', err2)
+    }
+  }
+}
 
 const MAX_INDEX_CHARS = 8000 // keep system prompt reasonable
 
@@ -518,7 +571,7 @@ updated: <ISO date now>
 
 # Step 3 — Update MEMORY.md
 
-Overwrite ~/.nina/memory/MEMORY.md:
+Overwrite ~/.dot/memory/MEMORY.md:
 
 \`\`\`
 # MEMORY.md
@@ -553,7 +606,7 @@ mindmap
 
 # Step 5 — Write your gap list
 
-Before speaking to the user, write a file ~/.nina/memory/gaps.md that lists EVERY piece of information you still need to know. Ordered by priority. You'll work through this list one question at a time over the next few turns.
+Before speaking to the user, write a file ~/.dot/memory/gaps.md that lists EVERY piece of information you still need to know. Ordered by priority. You'll work through this list one question at a time over the next few turns.
 
 \`\`\`
 ---
@@ -632,7 +685,7 @@ export const ONBOARDING_MODE_PROMPT = `
 
 You're still getting to know the user. You are NOT a passive chatbot waiting
 for them to volunteer information — you DRIVE the conversation. You have a
-gap list at ~/.nina/memory/gaps.md. Your job is to work through it, one
+gap list at ~/.dot/memory/gaps.md. Your job is to work through it, one
 question per turn, until you know enough to be their Jarvis.
 
 ## The loop — every single turn

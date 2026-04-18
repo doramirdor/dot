@@ -20,6 +20,7 @@ import crypto from 'node:crypto'
 import os from 'node:os'
 import { NINA_DIR } from './memory.js'
 import { getIdleSeconds, isScreenLocked } from './presence.js'
+import { remember as semanticRemember } from './semantic-memory.js'
 
 const execFileP = promisify(execFile)
 
@@ -242,6 +243,23 @@ async function tick(): Promise<void> {
     idx.lastCaptureAt = frame.timestamp
     trimRingBuffer(idx)
     saveIndex(idx)
+
+    // Index into semantic memory so "what was I looking at 20 min ago"
+    // can be answered by recall, not just by asking for screen_timeline.
+    // We don't OCR — just the (app, window) tuple is enough to surface
+    // the right context. Skip frames where we have neither.
+    if (app || winTitle) {
+      const label = [app, winTitle].filter(Boolean).join(' · ')
+      const content = `screen: ${label}`
+      // Skip logging if the previous frame had the same app+window — the
+      // dedup at the semantic layer handles exact duplicates, but this
+      // keeps the short-window spam lower.
+      const prev = idx.frames[idx.frames.length - 2]
+      const prevLabel = prev ? [prev.app, prev.window].filter(Boolean).join(' · ') : ''
+      if (label !== prevLabel) {
+        semanticRemember(content, 'observation', 'screen-watcher').catch(() => {})
+      }
+    }
   } catch (err) {
     console.warn('[screen-watcher] tick failed:', err)
   } finally {

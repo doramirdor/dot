@@ -6,7 +6,7 @@
  *
  * Examples of "don't do" rules:
  *   - "never send email without asking"
- *   - "never delete files outside ~/.nina/"
+ *   - "never delete files outside ~/.dot/"
  *   - "never quit apps"
  *   - "never touch the nadir repo"
  *   - "never run rm -rf"
@@ -20,9 +20,9 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import os from 'node:os'
+import { DOT_DIR } from './memory.js'
 
-const RULES_FILE = path.join(os.homedir(), '.nina', 'dont-do.json')
+const RULES_FILE = path.join(DOT_DIR, 'dont-do.json')
 
 export interface DontDoRule {
   id: string

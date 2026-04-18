@@ -207,7 +207,7 @@ export function classifyToolCall(
       for (const pat of FORBIDDEN_WRITE_PATHS) {
         if (pat.test(p)) return { tier: 'deny', reason: `blocked safe-op: ${p}` }
       }
-      // Safe-ops outside ~/.nina still confirm — reversible, but user should know.
+      // Safe-ops outside ~/.dot still confirm — reversible, but user should know.
       if (!p.includes('/.nina/')) {
         return { tier: 'confirm', reason: `${toolName.split('__').pop()} ${p}` }
       }
@@ -243,7 +243,7 @@ export function classifyToolCall(
     for (const pat of FORBIDDEN_WRITE_PATHS) {
       if (pat.test(p)) return { tier: 'deny', reason: `blocked write: ${p}` }
     }
-    // Writes inside ~/.nina/memory/ are part of her normal operation — auto.
+    // Writes inside ~/.dot/memory/ are part of her normal operation — auto.
     if (p.includes('/.nina/memory/') || p.includes('/.nina/')) {
       return { tier: 'auto' }
     }

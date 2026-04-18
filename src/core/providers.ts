@@ -23,7 +23,12 @@
  *   2. `config.json` `provider` field
  *   3. Provider-specific env vars that are already set
  *   4. 'anthropic' if Keychain has anthropic-token
- *   5. 'anthropic' fallback → loadAnthropicToken()
+ *   5. first ready provider supported by the Agent SDK
+ *
+ * Dot never silently reads credentials from other tools' config files.
+ * A legacy openclaw auth-profiles.json can be *offered* for import via
+ * `findLegacyOpenclawToken()` from the first-run setup UI — never grabbed
+ * automatically on boot.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -31,6 +36,29 @@ import os from 'node:os'
 import { getSecret, setSecret } from './keychain.js'
 
 export type ProviderId = 'anthropic' | 'bedrock' | 'vertex' | 'openai'
+
+const LEGACY_OPENCLAW_AUTH = path.join(
+  os.homedir(),
+  '.openclaw/agents/main/agent/auth-profiles.json',
+)
+
+/**
+ * Non-destructive probe for a legacy openclaw Anthropic token. Returns the
+ * token string if one is present, but never migrates or mutates — the setup
+ * UI offers the user an explicit "import" action. Dot no longer steals.
+ */
+export function findLegacyOpenclawToken(): string | null {
+  if (!fs.existsSync(LEGACY_OPENCLAW_AUTH)) return null
+  try {
+    const raw = JSON.parse(fs.readFileSync(LEGACY_OPENCLAW_AUTH, 'utf8')) as {
+      profiles?: Record<string, { type?: string; token?: string; access?: string; apiKey?: string }>
+    }
+    const p = raw.profiles?.['anthropic:default']
+    return p?.token ?? p?.access ?? p?.apiKey ?? null
+  } catch {
+    return null
+  }
+}
 
 export interface ProviderConfig {
   id: ProviderId
@@ -54,29 +82,17 @@ export interface ActiveProvider extends ProviderConfig {
   env: Record<string, string>
 }
 
-const NINA_CONFIG_PATH = path.join(os.homedir(), '.nina', 'config.json')
+// Config lives inside Dot's data directory — same as everything else.
+// Imported via DOT_DIR rather than reconstructed, so path overrides
+// (DOT_HOME env var) flow through automatically.
+import { DOT_DIR } from './memory.js'
+const NINA_CONFIG_PATH = path.join(DOT_DIR, 'config.json')
 
 // ===== Credential helpers per provider =====
 
 function loadAnthropicCredential(): { token: string | null; source: ProviderConfig['credentialSource'] } {
   const k = getSecret('anthropic-token')
   if (k) return { token: k, source: 'keychain' }
-  const legacy = path.join(os.homedir(), '.openclaw/agents/main/agent/auth-profiles.json')
-  if (fs.existsSync(legacy)) {
-    try {
-      const raw = JSON.parse(fs.readFileSync(legacy, 'utf8')) as {
-        profiles?: Record<string, { type?: string; token?: string; access?: string; apiKey?: string }>
-      }
-      const p = raw.profiles?.['anthropic:default']
-      const token = p?.token ?? p?.access ?? p?.apiKey ?? null
-      if (token) {
-        setSecret('anthropic-token', token) // migrate
-        return { token, source: 'legacy-file' }
-      }
-    } catch {
-      // ignore
-    }
-  }
   const env =
     process.env['CLAUDE_CODE_OAUTH_TOKEN'] || process.env['ANTHROPIC_API_KEY'] || null
   if (env) return { token: env, source: 'env' }

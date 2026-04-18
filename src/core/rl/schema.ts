@@ -1,7 +1,7 @@
 /**
  * core/rl/schema.ts — the replay buffer, daily summary, and policy tables.
  *
- * A separate DB file (`~/.nina/rl.db`) from `nina.db` so the RL subsystem
+ * A separate DB file (`~/.dot/rl.db`) from `nina.db` so the RL subsystem
  * can be wiped and re-seeded without touching conversations / tool_calls.
  *
  * Contextual-bandit shape, not full RL: every turn becomes one

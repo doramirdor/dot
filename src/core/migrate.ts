@@ -5,7 +5,7 @@
  *   - openClaw at ~/.openclaw (auth profiles, memory files, skills hints)
  *   - nanoClaw at ~/.nanoclaw (SQLite message history, per-group CLAUDE.md)
  *
- * Dot's native data dir is ~/.nina. Migration never deletes source data —
+ * Dot's native data dir is ~/.dot. Migration never deletes source data —
  * only reads and copies. Idempotent: running twice won't duplicate memories.
  */
 import fs from 'node:fs'

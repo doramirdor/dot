@@ -106,6 +106,10 @@ export interface RecallOptions {
   type?: 'fact' | 'conversation' | 'summary' | 'observation'
   /** Skip query rewriting — use the raw query verbatim. */
   skipRewrite?: boolean
+  /** ISO timestamp — only return memories created at or after this. */
+  since?: string
+  /** ISO timestamp — only return memories created at or before this. */
+  until?: string
 }
 
 /**
@@ -120,7 +124,11 @@ export async function recall(
   const rewritten = opts.skipRewrite ? query : rewriteQueryForRecall(query)
   try {
     // Overfetch (3x) so the boost can pull up older-but-relevant items.
-    const raw = await semanticRecall(rewritten, k * 3, opts.type)
+    const raw = await semanticRecall(rewritten, k * 3, {
+      type: opts.type,
+      since: opts.since,
+      until: opts.until,
+    })
     const boosted = applyBoosts(raw)
     return boosted.slice(0, k)
   } catch (err) {

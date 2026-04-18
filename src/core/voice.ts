@@ -12,7 +12,7 @@
  * default we stay local even when the key is present.
  *
  * Toggle state: per-context (desktop, or tg:<chatId>). Defaults off per
- * CLAUDE.md fixed decisions. Persists at ~/.nina/voice.json so it survives
+ * CLAUDE.md fixed decisions. Persists at ~/.dot/voice.json so it survives
  * restarts. A missing file is treated as "everything off", no migration.
  */
 import fs from 'node:fs'

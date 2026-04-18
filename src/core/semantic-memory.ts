@@ -16,6 +16,7 @@
 import { getDb } from './db.js'
 import { embed, getEmbeddingDim, initEmbedder } from './embed.js'
 import * as sqliteVec from 'sqlite-vec'
+import crypto from 'node:crypto'
 
 let vecInitialized = false
 
@@ -45,11 +46,25 @@ export async function initSemanticMemory(): Promise<void> {
       type TEXT NOT NULL CHECK(type IN ('conversation', 'fact', 'summary', 'observation')),
       source TEXT DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      embedding BLOB
+      embedding BLOB,
+      content_hash TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type);
     CREATE INDEX IF NOT EXISTS idx_memories_created ON memories(created_at);
+  `)
+
+  // Backfill content_hash column on pre-existing rows (safe if already added).
+  // Must run BEFORE creating the idx_memories_hash index, since older DBs
+  // created the memories table without this column.
+  try {
+    db.exec('ALTER TABLE memories ADD COLUMN content_hash TEXT')
+  } catch {
+    // column already exists
+  }
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_memories_hash ON memories(content_hash, type);
   `)
 
   // Create the vec0 virtual table for vector similarity search.
@@ -83,15 +98,38 @@ export async function remember(
   if (!content || content.trim().length < 10) return -1
 
   const db = getDb()
+
+  // Dedup: if an entry with the same (type, content_hash) already exists
+  // within the last 24 hours, skip the write. Prevents "read same email
+  // 3 times today" from creating 3 vector rows, and keeps the screen
+  // watcher's repeated (app, window) tuples from flooding the store.
+  // A 24h window means the same fact can be re-logged tomorrow —
+  // helpful for recency-biased recall without permanent exclusion.
+  const hash = hashContent(type, content)
+  try {
+    const existing = db
+      .prepare(
+        `SELECT id FROM memories
+         WHERE content_hash = ? AND type = ?
+         AND created_at > datetime('now', '-1 day')
+         LIMIT 1`,
+      )
+      .get(hash, type) as { id: number } | undefined
+    if (existing) return existing.id
+  } catch {
+    // If the hash column isn't there yet for some reason, fall through
+    // to the normal insert path.
+  }
+
   const vector = await embed(content)
   const vectorBlob = Buffer.from(vector.buffer)
 
   // Insert into metadata table
   const result = db
     .prepare(
-      'INSERT INTO memories (content, type, source, embedding) VALUES (?, ?, ?, ?)',
+      'INSERT INTO memories (content, type, source, embedding, content_hash) VALUES (?, ?, ?, ?, ?)',
     )
-    .run(content.slice(0, 10_000), type, source, vectorBlob)
+    .run(content.slice(0, 10_000), type, source, vectorBlob, hash)
 
   // lastInsertRowid is BigInt in better-sqlite3 — vec0 needs a plain integer
   const memoryId = Number(result.lastInsertRowid)
@@ -114,6 +152,20 @@ export async function remember(
   return memoryId
 }
 
+/**
+ * Stable hash of the content used for dedup. Case-insensitive, whitespace-
+ * normalized, first 200 chars — enough to catch "read email X" vs "read
+ * email X again" while still letting meaningful edits create new rows.
+ */
+function hashContent(type: string, content: string): string {
+  const normalized = content
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200)
+  return crypto.createHash('sha1').update(`${type}::${normalized}`).digest('hex').slice(0, 16)
+}
+
 export interface MemoryMatch {
   id: number
   content: string
@@ -123,20 +175,43 @@ export interface MemoryMatch {
   distance: number
 }
 
+export interface RecallFilters {
+  /** Filter by memory type. */
+  type?: string
+  /** ISO timestamp — only return memories created at or after this. */
+  since?: string
+  /** ISO timestamp — only return memories created at or before this. */
+  until?: string
+}
+
 /**
  * Recall the most relevant memories for a query.
  * Returns memories sorted by relevance (closest first).
+ *
+ * When `since` / `until` are provided, we overfetch from the vector
+ * index and filter by created_at — cheap for small N, and avoids a
+ * complex index-join with vec0.
  */
 export async function recall(
   query: string,
   limit = 5,
-  type?: string,
+  typeOrFilters?: string | RecallFilters,
 ): Promise<MemoryMatch[]> {
   if (!vecInitialized) await initSemanticMemory()
+
+  const filters: RecallFilters =
+    typeof typeOrFilters === 'string'
+      ? { type: typeOrFilters }
+      : (typeOrFilters ?? {})
+  const hasTimeRange = Boolean(filters.since || filters.until)
 
   const db = getDb()
   const queryVector = await embed(query)
   const queryBlob = Buffer.from(queryVector.buffer)
+
+  // Overfetch generously when time-filtering, so the post-filter set
+  // still has enough candidates. 5x is a safe default.
+  const overfetch = hasTimeRange ? limit * 5 : limit * 2
 
   // Query the vector index for nearest neighbors
   let rows: Array<{ rowid: number; distance: number }>
@@ -149,7 +224,7 @@ export async function recall(
          ORDER BY distance
          LIMIT ?`,
       )
-      .all(queryBlob, limit * 2) as Array<{ rowid: number; distance: number }>
+      .all(queryBlob, overfetch) as Array<{ rowid: number; distance: number }>
   } catch (err) {
     console.warn('[semantic-memory] vec search failed:', err)
     return []
@@ -176,10 +251,22 @@ export async function recall(
     createdAt: string
   }>
 
-  // Filter by type if specified
+  // Filter by type and time range
   let filtered = memories
-  if (type) {
-    filtered = memories.filter((m) => m.type === type)
+  if (filters.type) {
+    filtered = filtered.filter((m) => m.type === filters.type)
+  }
+  if (filters.since) {
+    const sinceMs = Date.parse(filters.since)
+    if (!Number.isNaN(sinceMs)) {
+      filtered = filtered.filter((m) => Date.parse(m.createdAt) >= sinceMs)
+    }
+  }
+  if (filters.until) {
+    const untilMs = Date.parse(filters.until)
+    if (!Number.isNaN(untilMs)) {
+      filtered = filtered.filter((m) => Date.parse(m.createdAt) <= untilMs)
+    }
   }
 
   // Sort by distance and limit

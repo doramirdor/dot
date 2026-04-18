@@ -214,6 +214,8 @@ Anthropic credential loading order (see `providers.ts`):
 
 **Dot no longer auto-reads `~/.openclaw/agents/main/agent/auth-profiles.json`.** The setup skill probes for it via `findLegacyOpenclawToken()` and offers an explicit "import into Keychain" action — Dot never steals silently.
 
+At runtime, if no credential is present on boot, Dot opens a **provider-setup window** (`src/main/provider-setup.ts`) that lists Anthropic / Bedrock / Vertex / OpenAI, takes a pasted key, and exposes the openclaw import as an opt-in checkbox. The same window is re-openable anytime from the tray **Setup provider…** item or by typing **`/provider`** (or `/setup`) in the chat. Headless mode skips the prompt and surfaces a clear error on the first failed turn.
+
 Bedrock uses the standard AWS credential chain (`~/.aws/credentials`, env vars, IAM role). Vertex uses `GOOGLE_APPLICATION_CREDENTIALS` or gcloud ADC at `~/.config/gcloud/application_default_credentials.json`.
 
 ## Skills

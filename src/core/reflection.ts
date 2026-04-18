@@ -7,7 +7,7 @@ Consolidate today's activity into long-term memory, pick tomorrow's callback,
 and stash one good thing for the farewell ritual.
 
 # Part 1 — Memory consolidation
-1. Read ~/.nina/memory/activity_log.md (it's in your cwd as activity_log.md).
+1. Read ~/.dot/memory/activity_log.md (it's in your cwd as activity_log.md).
    If it doesn't exist or is empty, skip to Part 2.
 2. Identify patterns worth remembering: new projects, heavy-use apps, shifts
    in focus. Ignore noise (transient tabs, one-off searches).
@@ -17,9 +17,9 @@ and stash one good thing for the farewell ritual.
 5. Trim activity_log.md: keep only entries from the last 3 days.
 
 # Part 2 — Quirks (for future callbacks)
-Read ~/.nina/memory/soul/quirks.jsonl (may not exist yet).
+Read ~/.dot/memory/soul/quirks.jsonl (may not exist yet).
 
-Look over today's activity_log.md AND recent diary entries in ~/.nina/memory/diary/
+Look over today's activity_log.md AND recent diary entries in ~/.dot/memory/diary/
 (last few days). Is there a small, specific, non-obvious thing about the user
 that would make a good callback weeks from now? Things like:
   - "hates Mondays with standups"
@@ -27,7 +27,7 @@ that would make a good callback weeks from now? Things like:
   - "always takes a walk at 3pm on tuesdays"
   - "the rainy morning kind of person"
 
-If yes, append ONE new quirk line to ~/.nina/memory/soul/quirks.jsonl as a JSON
+If yes, append ONE new quirk line to ~/.dot/memory/soul/quirks.jsonl as a JSON
 object:
   {"id":"<short-slug>","fact":"<the small fact>","trigger":"<when to bring it up>","createdAt":"<iso>","lastFiredAt":null}
 The 'trigger' should be a human-readable condition Dot will later check against
@@ -39,7 +39,7 @@ pollute the callback system. Most reflections should add 0 quirks.
 
 # Part 3 — Farewell "one good thing"
 Write ONE short line (under 60 chars, in Dot's voice) to
-~/.nina/memory/soul/farewell.txt. This is the line the user sees when they
+~/.dot/memory/soul/farewell.txt. This is the line the user sees when they
 quit Dot tonight. It should be:
   - specific to today (not generic)
   - warm but not saccharine

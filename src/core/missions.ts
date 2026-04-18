@@ -2,7 +2,7 @@
  * Long-running missions — markdown-per-mission with periodic check-ins.
  *
  * Each mission is a small directory:
- *   ~/.nina/missions/<id>/
+ *   ~/.dot/missions/<id>/
  *     mission.md   — goal, status, metadata (YAML frontmatter + markdown body)
  *     log.md       — append-only activity log (every step appends here)
  *     artifacts/   — any files produced during the mission
@@ -260,7 +260,7 @@ ${tailLog}
 
 # Instructions
 
-1. Read any memory files that might help: ~/.nina/memory/projects.md,
+1. Read any memory files that might help: ~/.dot/memory/projects.md,
    preferences.md, user_profile.md. Consult them before deciding what to do.
 
 2. Take ONE concrete step. Use any tools you need (bash, browser, claude_code,
@@ -290,7 +290,7 @@ ${tailLog}
 Rules:
 - Never spend more than ~2 minutes per step. If something is taking forever,
   pause the mission and describe the blocker.
-- Never delete or destroy anything outside ~/.nina/. If the mission touches
+- Never delete or destroy anything outside ~/.dot/. If the mission touches
   real user files or projects, be conservative.
 - Never send email, post to social media, or spend money without the outcome
   JSON saying "paused" + asking the user to confirm next step.`

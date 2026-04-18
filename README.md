@@ -22,9 +22,11 @@ You already have five LLMs open in five tabs. None of them know you, none of the
 **Dot is the opposite bet.**
 
 - **She's always there.** A 128px pixel pet in the corner of your screen. Click her. Talk to her. She doesn't interrupt your flow.
-- **She remembers.** Every conversation writes to her long-term memory. Tomorrow she still knows who you are and what you care about.
-- **Her memory refreshes itself.** A 20-minute background loop extracts facts from recent conversations and rewrites her mindmap — zero LLM calls, zero cost. The afternoon's insights are searchable before dinner, not tomorrow morning.
-- **She notices.** Screen watcher, clipboard, active-app signal. She only speaks up when she has something worth saying — and only when you're away from the Mac.
+- **She remembers two ways.** Short-term (last 10 turns verbatim, survives process restarts) and long-term (vector-indexed conversations, facts, observations, and session summaries). Tomorrow she still knows who you are and what you care about.
+- **Her memory refreshes itself.** A 20-minute background loop extracts facts from recent conversations, regenerates her mindmap, and writes per-session rollups — zero LLM calls, zero cost. The afternoon's insights are searchable before dinner, not tomorrow morning.
+- **She notices silently.** Every gmail read, browser page, screen app-switch, and clipboard paste gets indexed as a searchable observation with dedup and a recency boost. "What email did we look at 20 minutes ago" actually works.
+- **She writes real reports.** Ask for a "morning report" or "write up what you know about X" and she gathers the data, synthesizes sections, and opens a styled HTML file — not a wall of text in a chat bubble. Saved to `~/.dot/reports/`.
+- **She has a dashboard.** One command opens an HTML view of her memory stats, the facts she knows, recent observations, session summaries, and the mindmap.
 - **She follows you.** Same Dot, same memory, on your phone over Telegram.
 - **She can fix herself.** If you want her to behave differently, tell her. She'll rewrite her own code inside a container and run the change reversibly. Don't like it? `dot_undo`.
 - **She runs when you sleep.** Headless launchd daemon mode means she's still there at 3am when the build fails.
@@ -37,12 +39,18 @@ She is not trying to be ChatGPT. She's trying to be the single helpful presence 
 "onboard me"                      → 10-minute onboarding, she learns your rhythm
 "what's on my calendar today?"    → reads Google Calendar locally
 "summarise unread gmail"          → threads summarised in the bubble
+"write me a morning report with calendar, unread email, and tech news"
+                                  → gathers, synthesises, opens an HTML file
+"open my dashboard"               → HTML view of what Dot knows about you
+"what email did we look at 20 min ago?" → recency-boosted recall hits it
 "research 5 competitors to X"     → spawns 5 parallel workers, returns a brief
 "turn off wifi"                   → handled, reversibly
 "every weekday at 8am, brief me"  → a cron task she runs herself
 "rewrite your heart to be warmer" → self-rewrite, reversible
 "remind me via telegram when CI goes red" → presence-aware push
 ```
+
+Tip: inside her chat bubble, **Enter** sends, **Shift+Enter** adds a newline. Long questions welcome.
 
 Every action is auditable. Every destructive action is undoable. Every scheduled job respects a daily spend cap.
 
@@ -130,7 +138,7 @@ You might already use **[openclaw](https://openclaw.ai/)** or **[nanoclaw](https
 2. **Representative of openclaw** — Dot forwards turns to your openclaw gateway; displays and remembers; keeps the pixel presence.
 3. **Representative of nanoclaw** — Dot forwards turns to a nanoclaw container; keeps memory + animations on her side.
 
-Pick via `~/.nina/config.json`:
+Pick via `~/.dot/config.json`:
 
 ```jsonc
 {
@@ -197,7 +205,7 @@ Bedrock + Vertex use their standard credential chains. Switch with:
 ```bash
 # say to Dot, or run the MCP tool
 "switch to bedrock"
-# or edit ~/.nina/config.json: { "provider": "bedrock" }
+# or edit ~/.dot/config.json: { "provider": "bedrock" }
 ```
 
 </details>
@@ -229,9 +237,9 @@ Dot is an Electron app written in TypeScript. The renderer is React. The backend
 
 **She routes to multiple providers.** Anthropic, Bedrock, Vertex today. OpenAI credential storage ready for when the SDK supports it.
 
-**She's extensible.** Drop a plugin at `~/.nina/plugins/<name>/plugin.mjs` and its tools show up on the next restart. No fork required.
+**She's extensible.** Drop a plugin at `~/.dot/plugins/<name>/plugin.mjs` and its tools show up on the next restart. No fork required.
 
-**She's reversible.** Every destructive operation goes through `safe-ops.ts` → `~/.nina/trash/<ts>/` + an `undo_log` row. Disk is cheap; regrets are expensive.
+**She's reversible.** Every destructive operation goes through `safe-ops.ts` → `~/.dot/trash/<ts>/` + an `undo_log` row. Disk is cheap; regrets are expensive.
 
   </td>
 </tr>
@@ -257,6 +265,25 @@ If you want the architectural deep-dive, read [CLAUDE.md](CLAUDE.md). If you wan
 | Can be a pet face over others | ✅ | — | — | — | — |
 
 ---
+
+## Where her data lives
+
+Everything Dot persists — SQLite DB, memory markdown, browser profile, cron, trash, reports, dashboard, plugins — lives under `~/.dot/`. Point her at a custom location via `DOT_HOME=/path/to/dir` in the environment. First boot migrates any existing `~/.nina/` install in one atomic rename.
+
+```
+~/.dot/
+├── nina.db                SQLite (conversations, memories, tool_calls, undo_log)
+├── memory/                MEMORY.md, PERSONALITY.md, mindmap.md, gaps.md
+├── reports/               HTML files from generate_report
+├── dashboard.html         Regenerated on demand
+├── browser-profile/       Playwright persistent Chromium
+├── plugins/               Drop-in user extensions
+├── trash/<iso-ts>/        Reversible deletions
+├── screen-watcher/        Rolling frame buffer
+├── missions/<id>/         Long-running background work
+├── config.json            User-editable config
+└── logs/                  dot.out.log / dot.err.log
+```
 
 ## Fixed decisions
 
