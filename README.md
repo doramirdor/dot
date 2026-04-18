@@ -23,9 +23,10 @@ You already have five LLMs open in five tabs. None of them know you, none of the
 
 - **She's always there.** A 128px pixel pet in the corner of your screen. Click her. Talk to her. She doesn't interrupt your flow.
 - **She remembers.** Every conversation writes to her long-term memory. Tomorrow she still knows who you are and what you care about.
+- **Her memory refreshes itself.** A 20-minute background loop extracts facts from recent conversations and rewrites her mindmap — zero LLM calls, zero cost. The afternoon's insights are searchable before dinner, not tomorrow morning.
 - **She notices.** Screen watcher, clipboard, active-app signal. She only speaks up when she has something worth saying — and only when you're away from the Mac.
 - **She follows you.** Same Dot, same memory, on your phone over Telegram.
-- **She can fix herself.** If you want her to behave differently, tell her. She'll rewrite her own code and run the change reversibly. Don't like it? `dot_undo`.
+- **She can fix herself.** If you want her to behave differently, tell her. She'll rewrite her own code inside a container and run the change reversibly. Don't like it? `dot_undo`.
 - **She runs when you sleep.** Headless launchd daemon mode means she's still there at 3am when the build fails.
 
 She is not trying to be ChatGPT. She's trying to be the single helpful presence that knows you best, across every surface of your day.
@@ -186,8 +187,10 @@ npm run dev                                    # hot-reload development
 **Credentials** — Dot reads Anthropic creds in this order:
 
 1. macOS Keychain (service `dot`, account `anthropic-token`)
-2. `~/.openclaw/agents/main/agent/auth-profiles.json` (auto-migrated on first read)
-3. `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` env var
+2. `CLAUDE_CODE_OAUTH_TOKEN` env var
+3. `ANTHROPIC_API_KEY` env var
+
+(If you already have openclaw set up, `/setup` will offer to import that token once into the Keychain — Dot doesn't read from other tools' config files on boot.)
 
 Bedrock + Vertex use their standard credential chains. Switch with:
 

@@ -44,30 +44,52 @@ If this fails with a compiler error, note it and continue — Dot will still boo
 
 ### 3 · Credentials
 
-Dot needs an Anthropic credential. Check the four sources in order:
+Dot needs an Anthropic credential. **Dot never reads from other tools' config files silently** — if openclaw has a token, we'll offer to import it explicitly.
+
+Check the three native sources first:
 
 ```bash
 # 1. macOS Keychain
 security find-generic-password -s dot -a anthropic-token -w 2>/dev/null | head -c 12 && echo "  (Keychain)"
 
-# 2. openclaw legacy file
-test -f ~/.openclaw/agents/main/agent/auth-profiles.json && echo "  (openclaw auth-profiles found)"
-
-# 3. env vars
+# 2. env vars
 test -n "$ANTHROPIC_API_KEY" && echo "  ANTHROPIC_API_KEY set"
 test -n "$CLAUDE_CODE_OAUTH_TOKEN" && echo "  CLAUDE_CODE_OAUTH_TOKEN set"
 ```
 
-If **none** found, ask the user which path they prefer:
+If one is present, say which and move on.
 
-- **Keychain (recommended)** — ask for the key, then store it:
-  ```bash
-  security add-generic-password -U -s dot -a anthropic-token -w "<KEY>" -T ''
-  ```
-- **openclaw profile** — tell them to run their openclaw setup; Dot will auto-migrate on first boot.
-- **Shell env** — have them add `export ANTHROPIC_API_KEY=sk-ant-...` to `~/.zshrc`.
+If none, probe for the legacy openclaw file and ask before importing:
 
-If one was already present, say which and move on.
+```bash
+test -f ~/.openclaw/agents/main/agent/auth-profiles.json && echo "found openclaw auth-profiles"
+```
+
+**If the openclaw file exists**, read the `anthropic:default` profile and ask the user:
+
+> I found an Anthropic token in your openclaw setup. Do you want me to import it into Dot's Keychain? (yes / no)
+
+On "yes":
+
+```bash
+# extract the token
+TOKEN=$(python3 -c "import json,sys,pathlib
+p=pathlib.Path.home()/'.openclaw/agents/main/agent/auth-profiles.json'
+d=json.loads(p.read_text())
+pr=d.get('profiles',{}).get('anthropic:default',{})
+print(pr.get('token') or pr.get('access') or pr.get('apiKey') or '')")
+
+# store in Keychain
+security add-generic-password -U -s dot -a anthropic-token -w "$TOKEN" -T ''
+```
+
+**If none of the above** — no Keychain entry, no env, no openclaw file — ask the user to paste a key, then:
+
+```bash
+security add-generic-password -U -s dot -a anthropic-token -w "<KEY>" -T ''
+```
+
+Alternatively they can set `ANTHROPIC_API_KEY` in their shell profile.
 
 ### 4 · Optional: pick a non-default provider
 
