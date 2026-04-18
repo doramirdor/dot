@@ -144,44 +144,60 @@ Think of Dot as **the pet layer**. Animations, memory, moods, ambient presence. 
 
 ## Install
 
+**The AI-native way** (recommended — Claude does everything for you):
+
+```bash
+git clone https://github.com/doramirdor/dot.git
+cd dot
+claude        # opens Claude Code
+/setup        # inside the Claude Code session
+```
+
+That's it. Claude walks the install: deps, native rebuilds, credentials, optional container runtime for self-rewrite, optional Telegram bot, and the first run. No wizards, no README-chasing, no `brew install` roulette. If something goes wrong mid-setup, describe the problem to Claude — she fixes it.
+
+> Don't have Claude Code yet? Install it from [claude.com/code](https://claude.com/claude-code) — it's free and takes 30 seconds.
+
+<details>
+<summary><b>Prefer to run it by hand?</b></summary>
+
 ```bash
 # macOS 13+, Node 20+
 git clone https://github.com/doramirdor/dot.git
 cd dot
-npm install
+pnpm install || npm install
+npx electron-rebuild
+export ANTHROPIC_API_KEY=sk-ant-...   # or set up Keychain — see below
 npm run build
-./bin/launchd-install.sh install
+./bin/launchd-install.sh install      # daemon on login
 ```
 
-That's it. She'll appear in the bottom-right corner of your main display. First boot kicks off onboarding.
-
-### Run modes
+**Run modes**
 
 ```bash
 npm run dev                                    # hot-reload development
-./out/main/index.js                            # windowed (via Electron)
+./out/main/index.js                            # windowed (packaged)
 ./out/main/index.js --headless                 # launchd daemon mode
-./out/main/index.js --migrate                  # import state from openclaw/nanoclaw
+./out/main/index.js --migrate                  # import from openclaw/nanoclaw
 
 ./bin/launchd-install.sh status                # is it running?
 ./bin/launchd-install.sh tail                  # live logs
 ```
 
-### Credentials
-
-Dot reads Anthropic credentials in this order:
+**Credentials** — Dot reads Anthropic creds in this order:
 
 1. macOS Keychain (service `dot`, account `anthropic-token`)
-2. `~/.openclaw/agents/main/agent/auth-profiles.json` (auto-migrated to Keychain on first read)
+2. `~/.openclaw/agents/main/agent/auth-profiles.json` (auto-migrated on first read)
 3. `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` env var
 
-Bedrock + Vertex use their standard credential chains. Switch via:
+Bedrock + Vertex use their standard credential chains. Switch with:
 
 ```bash
-# in Dot's input bubble
+# say to Dot, or run the MCP tool
 "switch to bedrock"
 # or edit ~/.nina/config.json: { "provider": "bedrock" }
 ```
+
+</details>
 
 ---
 
