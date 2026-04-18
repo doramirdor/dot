@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1115"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <radialGradient id="accentGlow" cx="0.5" cy="0.35" r="0.55">
+      <stop offset="0%" stop-color="#9fe0f5" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#9fe0f5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="headline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c5ecf7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#accentGlow)"/>
+
+  <!-- Dot character — centered horizontally, upper block.
+       Source viewBox 256x288; scale 2.6 => 665 x 749. translate so feet sit near y=730 -->
+  <g transform="translate(268,80) scale(2.6)" shape-rendering="crispEdges">
+    <ellipse cx="128" cy="248.32" rx="61.44" ry="9.6" fill="rgba(0,0,0,0.35)"/>
+    <rect x="80" y="64" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="96" y="64" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="112" y="64" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="128" y="64" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="144" y="64" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="160" y="64" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="80" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="80" y="80" width="16" height="16" fill="#c5ecf7"/>
+    <rect x="96" y="80" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="112" y="80" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="80" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="80" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="160" y="80" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="176" y="80" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="48" y="96" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="96" width="16" height="16" fill="#c5ecf7"/>
+    <rect x="80" y="96" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="96" y="96" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="112" y="96" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="96" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="96" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="160" y="96" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="176" y="96" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="192" y="96" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="48" y="112" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="112" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="80" y="112" width="16" height="16" fill="#fffdf5"/>
+    <rect x="96" y="112" width="16" height="16" fill="#fffdf5"/>
+    <rect x="112" y="112" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="112" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="112" width="16" height="16" fill="#fffdf5"/>
+    <rect x="160" y="112" width="16" height="16" fill="#fffdf5"/>
+    <rect x="176" y="112" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="192" y="112" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="48" y="128" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="128" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="80" y="128" width="16" height="16" fill="#fffdf5"/>
+    <rect x="96" y="128" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="112" y="128" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="128" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="128" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="160" y="128" width="16" height="16" fill="#fffdf5"/>
+    <rect x="176" y="128" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="192" y="128" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="48" y="144" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="144" width="16" height="16" fill="#ffb5c5"/>
+    <rect x="80" y="144" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="96" y="144" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="112" y="144" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="144" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="144" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="160" y="144" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="176" y="144" width="16" height="16" fill="#ffb5c5"/>
+    <rect x="192" y="144" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="48" y="160" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="160" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="80" y="160" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="96" y="160" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="112" y="160" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="128" y="160" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="144" y="160" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="160" y="160" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="176" y="160" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="192" y="160" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="48" y="176" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="176" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="80" y="176" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="96" y="176" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="112" y="176" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="176" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="176" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="160" y="176" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="176" y="176" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="192" y="176" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="64" y="192" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="80" y="192" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="96" y="192" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="112" y="192" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="128" y="192" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="144" y="192" width="16" height="16" fill="#9fe0f5"/>
+    <rect x="160" y="192" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="176" y="192" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="80" y="208" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="96" y="208" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="112" y="208" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="128" y="208" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="144" y="208" width="16" height="16" fill="#6cc0e8"/>
+    <rect x="160" y="208" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="96" y="224" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="112" y="224" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="128" y="224" width="16" height="16" fill="#1a1a2e"/>
+    <rect x="144" y="224" width="16" height="16" fill="#1a1a2e"/>
+  </g>
+
+  <!-- Text block -->
+  <g font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif" text-anchor="middle">
+    <text x="600" y="900" font-size="160" font-weight="800" fill="url(#headline)" letter-spacing="-6">Dot</text>
+    <text x="600" y="965" font-size="34" font-weight="600" fill="#e6e8ec">
+      A tiny AI that lives on your Mac.
+    </text>
+    <text x="600" y="1010" font-size="24" font-weight="400" fill="#8b93a7">
+      Remembers you. Notices things. Runs when you sleep.
+    </text>
+  </g>
+
+  <!-- Feature chips -->
+  <g font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="500">
+    <rect x="290" y="1048" width="180" height="42" rx="21" fill="#161a22" stroke="#262b36" stroke-width="1.5"/>
+    <text x="380" y="1076" fill="#c5ecf7" text-anchor="middle">evolving memory</text>
+
+    <rect x="485" y="1048" width="140" height="42" rx="21" fill="#161a22" stroke="#262b36" stroke-width="1.5"/>
+    <text x="555" y="1076" fill="#c5ecf7" text-anchor="middle">telegram</text>
+
+    <rect x="640" y="1048" width="160" height="42" rx="21" fill="#161a22" stroke="#262b36" stroke-width="1.5"/>
+    <text x="720" y="1076" fill="#c5ecf7" text-anchor="middle">self-rewrites</text>
+
+    <rect x="815" y="1048" width="160" height="42" rx="21" fill="#161a22" stroke="#262b36" stroke-width="1.5"/>
+    <text x="895" y="1076" fill="#c5ecf7" text-anchor="middle">reversible</text>
+  </g>
+
+  <!-- GitHub URL footer -->
+  <g font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif" transform="translate(600, 1145)">
+    <path transform="translate(-190, -22) scale(0.9)"
+          d="M16 0C7.163 0 0 7.163 0 16c0 7.07 4.583 13.067 10.942 15.187.8.148 1.092-.347 1.092-.77 0-.38-.013-1.39-.022-2.73-4.45.966-5.388-2.145-5.388-2.145-.727-1.848-1.776-2.34-1.776-2.34-1.452-.993.11-.973.11-.973 1.606.113 2.452 1.65 2.452 1.65 1.428 2.445 3.748 1.74 4.66 1.33.145-1.035.56-1.74 1.018-2.14-3.553-.404-7.29-1.776-7.29-7.904 0-1.746.624-3.173 1.646-4.29-.164-.406-.714-2.032.157-4.234 0 0 1.344-.43 4.4 1.64A15.31 15.31 0 0116 7.593a15.3 15.3 0 014.003.54c3.054-2.07 4.396-1.64 4.396-1.64.874 2.202.324 3.828.16 4.234 1.024 1.117 1.643 2.544 1.643 4.29 0 6.144-3.743 7.495-7.307 7.89.575.495 1.087 1.472 1.087 2.965 0 2.14-.02 3.865-.02 4.393 0 .427.287.925 1.097.768C27.423 29.06 32 23.065 32 16c0-8.837-7.163-16-16-16z"
+          fill="#ffffff"/>
+    <text x="-150" y="0" font-size="28" font-weight="600" fill="#ffffff">github.com/GAgentDot/dot</text>
+  </g>
+</svg>
