@@ -1,0 +1,846 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -webkit-user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Courier New', monospace;
+  image-rendering: pixelated;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  -webkit-app-region: drag;
+}
+
+/* Nina panel: everything stacks vertically, centered on her */
+.nina-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ============ COMIC SPEECH BUBBLE ============ */
+.comic-bubble {
+  position: relative;
+  background: #fffdf5;
+  border: 3px solid #1a1a2e;
+  border-radius: 18px;
+  padding: 10px 26px 10px 14px;
+  max-width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+  line-height: 1.45;
+  color: #1a1a2e;
+  -webkit-app-region: no-drag;
+  animation: bubble-pop 0.2s ease-out;
+  scroll-behavior: smooth;
+}
+
+@keyframes bubble-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Comic tail — small notch pointing down, tucked against the bubble bottom */
+.comic-bubble__tail {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid #1a1a2e;
+}
+.comic-bubble__tail::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #fffdf5;
+}
+
+.comic-bubble__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Thin scrollbar */
+.comic-bubble::-webkit-scrollbar { width: 3px; }
+.comic-bubble::-webkit-scrollbar-track { background: transparent; }
+.comic-bubble::-webkit-scrollbar-thumb { background: rgba(26, 26, 46, 0.2); border-radius: 2px; }
+
+/* Close button inside the bubble */
+.comic-bubble__close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 2px solid #1a1a2e;
+  border-radius: 50%;
+  background: #fffdf5;
+  color: #1a1a2e;
+  font-family: -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  z-index: 2;
+}
+.comic-bubble__close:hover {
+  background: #ff8fa3;
+  color: #fffdf5;
+}
+
+/* Floating "restore last bubble" chip shown next to Dot when a bubble was dismissed */
+.restore-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 2px;
+  border: 2px solid #1a1a2e;
+  border-radius: 50%;
+  background: #fffdf5;
+  color: #1a1a2e;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
+  -webkit-app-region: no-drag;
+  animation: bubble-pop 0.15s ease-out;
+}
+.restore-bubble:hover {
+  background: #9fe0f5;
+  transform: scale(1.08);
+}
+
+/* Error variant */
+.comic-bubble--error {
+  border-color: #e07b00;
+  background: #fff4e6;
+  color: #8b4000;
+}
+.comic-bubble--error .comic-bubble__tail {
+  border-top-color: #e07b00;
+}
+.comic-bubble--error .comic-bubble__tail::after {
+  border-top-color: #fff4e6;
+}
+
+/* ============ COMIC INPUT BUBBLE ============ */
+.comic-input {
+  background: #fffdf5;
+  border: 3px solid #1a1a2e;
+  border-radius: 14px;
+  padding: 8px 12px;
+  min-width: 200px;
+  max-width: 260px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18);
+  animation: bubble-pop 0.15s ease-out;
+  -webkit-app-region: no-drag;
+  margin-top: 2px;
+}
+
+.comic-input input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: #1a1a2e;
+}
+
+.comic-input input::placeholder {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* ============ PET ============ */
+/* ============ PET SPRITE ============ */
+.pet-wrap {
+  cursor: pointer;
+  position: relative;
+  -webkit-app-region: no-drag;
+  transform-origin: 50% 100%;
+  transition: filter 0.3s ease;
+}
+
+/* Smooth body color transitions between seedling and adult forms */
+.pet-body-pixel {
+  transition: fill 0.6s ease-out;
+}
+
+/* Grown form is 15% bigger */
+.pet-wrap--grown {
+  transform: scale(1.15);
+  transform-origin: 50% 100%;
+}
+
+/* Leaf only visible on seedling */
+.pet-wrap--seedling .pet-leaf {
+  opacity: 1;
+}
+.pet-wrap--grown .pet-leaf {
+  opacity: 0;
+}
+
+/* ---- Growth animation: walk off → come back blue + bigger ---- */
+
+/* Phase 1: walk off to the right */
+.pet-wrap--leaving {
+  animation: walk-off 0.8s ease-in forwards !important;
+}
+
+@keyframes walk-off {
+  0%   { transform: translateX(0) scale(1); opacity: 1; }
+  60%  { transform: translateX(80px) scale(1); opacity: 1; }
+  100% { transform: translateX(160px) scale(0.8); opacity: 0; }
+}
+
+/* Phase 2: come back from the left, blue + bigger */
+.pet-wrap--arriving {
+  animation: walk-on 1s ease-out forwards !important;
+}
+
+@keyframes walk-on {
+  0%   { transform: translateX(-160px) scale(0.9); opacity: 0; }
+  40%  { transform: translateX(-40px) scale(1.1); opacity: 1; }
+  70%  { transform: translateX(8px) scale(1.18); opacity: 1; }
+  85%  { transform: translateX(-3px) scale(1.15); }
+  100% {
+    transform: translateX(0) scale(1.15);
+    opacity: 1;
+    filter: drop-shadow(0 0 12px rgba(159, 224, 245, 0.6));
+  }
+}
+
+/* Flash after arriving */
+.pet-wrap--arrived {
+  animation: arrival-glow 1.2s ease-out;
+}
+
+@keyframes arrival-glow {
+  0%   { filter: drop-shadow(0 0 16px rgba(159, 224, 245, 0.9)); }
+  100% { filter: drop-shadow(0 0 0 rgba(159, 224, 245, 0)); }
+}
+
+.pet-wrap--idle {
+  animation: pet-breathe 3.2s ease-in-out infinite;
+}
+
+.pet-wrap--thinking {
+  animation: pet-think 2s ease-in-out infinite;
+}
+
+.pet-wrap--talking {
+  animation: pet-talk 0.5s ease-in-out infinite;
+}
+
+.pet-wrap--alert {
+  animation: pet-alert-shake 0.3s ease-in-out 3;
+}
+
+.pet-wrap--sleeping {
+  animation: pet-sleep-breathe 4.5s ease-in-out infinite;
+  filter: brightness(0.88) saturate(0.85);
+}
+
+@keyframes pet-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50%      { transform: scale(1.015, 0.985); }
+}
+
+@keyframes pet-sleep-breathe {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  50%      { transform: scale(1.02, 0.98) translateY(2px); }
+}
+
+@keyframes pet-think {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+@keyframes pet-talk {
+  0%, 100% { transform: scale(1, 1); }
+  50%      { transform: scale(1.025, 0.975) translateY(-1px); }
+}
+
+@keyframes pet-alert-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-3px); }
+  75%      { transform: translateX(3px); }
+}
+
+.pet-thought {
+  animation: thought-float 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes thought-float {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-2px); }
+}
+
+.pet-alert-mark {
+  animation: alert-pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes alert-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.88); }
+}
+
+.pet-zzz {
+  animation: zzz-drift 3s ease-in-out infinite;
+}
+
+@keyframes zzz-drift {
+  0%   { opacity: 0; transform: translateY(4px); }
+  30%  { opacity: 1; transform: translateY(0); }
+  70%  { opacity: 1; transform: translateY(-4px); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+.pet-shadow {
+  animation: shadow-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes shadow-breathe {
+  0%, 100% { opacity: 0.22; }
+  50%      { opacity: 0.28; }
+}
+
+/* ============ LOADING OVERLAY ============ */
+.pet-loading-wrap {
+  position: relative;
+}
+
+/* Pulsing glow around Nina while loading — no rotation, stays visible */
+.pet-loading-wrap .pet-wrap {
+  animation: loading-breathe 1.2s ease-in-out infinite !important;
+}
+
+@keyframes loading-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
+  }
+  50% {
+    transform: scale(1.04);
+    filter: drop-shadow(0 0 18px rgba(99, 102, 241, 0.8));
+  }
+}
+
+/* Spinning ring around Nina */
+.loading-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  margin-top: -78px;
+  margin-left: -70px;
+  border: 3px solid transparent;
+  border-top: 3px solid #6366f1;
+  border-right: 3px solid #a78bfa;
+  border-radius: 50%;
+  animation: ring-spin 1.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes ring-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 140px;
+  margin-top: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.loading-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(26, 26, 46, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid #1a1a2e;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #a78bfa, #6366f1);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease-out;
+  animation: loading-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.loading-text {
+  font-size: 10px;
+  font-family: 'SF Mono', Menlo, monospace;
+  color: #fffdf5;
+  white-space: nowrap;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  animation: loading-text-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-text-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+/* ============ FAREWELL OVERLAY ============ */
+.farewell-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 20;
+  animation: farewell-fade-in 0.5s ease-out;
+  -webkit-app-region: no-drag;
+}
+
+@keyframes farewell-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.farewell-line {
+  background: #fffdf5;
+  border: 3px solid #1a1a2e;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 14px;
+  color: #1a1a2e;
+  max-width: 260px;
+  text-align: center;
+  line-height: 1.4;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+  animation: farewell-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes farewell-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.farewell-zzz {
+  color: #9fe0f5;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  opacity: 0.8;
+  animation: zzz-float 2s ease-in-out infinite;
+}
+
+@keyframes zzz-float {
+  0% {
+    opacity: 0.3;
+    transform: translateY(4px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 0.3;
+    transform: translateY(4px);
+  }
+}
+
+.container--farewell .controls,
+.container--farewell .nina-panel .comic-bubble,
+.container--farewell .nina-panel .activity,
+.container--farewell .nina-panel .comic-input,
+.container--farewell .nina-panel .pet-wrap {
+  opacity: 0.15;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+/* ============ HOVER CONTROLS ============ */
+.controls {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+  -webkit-app-region: no-drag;
+}
+.controls--visible {
+  opacity: 1;
+}
+
+.ctrl-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid #1a1a2e;
+  border-radius: 50%;
+  background: #fffdf5;
+  color: #1a1a2e;
+  font-family: -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+  -webkit-app-region: no-drag;
+}
+.ctrl-btn:hover {
+  background: #ff8fa3;
+  color: #fffdf5;
+  transform: scale(1.1);
+}
+.ctrl-btn:active {
+  transform: scale(0.95);
+}
+
+.ctrl-btn--on {
+  background: #9fe0f5;
+  color: #1a1a2e;
+}
+.ctrl-btn--active {
+  background: #ff8fa3;
+  color: #fffdf5;
+  animation: mic-pulse 1.1s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% {
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(255, 143, 163, 0.7);
+  }
+  50% {
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2), 0 0 0 6px rgba(255, 143, 163, 0);
+  }
+}
+
+.mic-status {
+  font-family: -apple-system, sans-serif;
+  font-size: 11px;
+  color: #1a1a2e;
+  background: #fffdf5;
+  border: 1.5px solid #1a1a2e;
+  border-radius: 8px;
+  padding: 2px 8px;
+  margin-top: 6px;
+  align-self: center;
+  opacity: 0.9;
+}
+
+.first-run-glow {
+  animation: glow 2s ease-in-out infinite;
+  border-radius: 50%;
+}
+@keyframes glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(159, 224, 245, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(159, 224, 245, 1));
+  }
+}
+
+/* ============ ACTIVITY TRAY ============ */
+.activity {
+  background: rgba(26, 26, 46, 0.88);
+  border: 2px solid #1a1a2e;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #9fe0f5;
+  max-width: 260px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+  -webkit-app-region: no-drag;
+}
+
+.activity__line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.activity__line--current {
+  opacity: 1;
+  color: #fffdf5;
+  font-weight: 600;
+}
+
+/* ============ COMIC PERMISSION BUBBLE ============ */
+.comic-permission {
+  background: #fff4e6;
+  border: 3px solid #e07b00;
+  border-radius: 16px;
+  padding: 12px 14px;
+  min-width: 230px;
+  max-width: 260px;
+  box-shadow: 3px 3px 0 rgba(224, 123, 0, 0.25);
+  animation: bubble-pop 0.18s ease-out;
+  -webkit-app-region: no-drag;
+  margin-top: 4px;
+}
+
+.permission__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.permission__reason {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #4a4a5e;
+  font-family: 'SF Mono', Menlo, monospace;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 80px;
+  overflow: auto;
+}
+.permission__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.perm-btn {
+  padding: 5px 14px;
+  border: 2px solid #1a1a2e;
+  border-radius: 8px;
+  background: #fffdf5;
+  color: #1a1a2e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 0.08s ease;
+  -webkit-app-region: no-drag;
+}
+.perm-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.22);
+}
+.perm-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
+}
+.perm-btn--yes { background: #9fe0c5; }
+.perm-btn--no { background: #ffb5b5; }
+.permission__hint {
+  text-align: right;
+  font-size: 9px;
+  color: #8a8a9a;
+  margin-top: 6px;
+  font-family: 'SF Mono', Menlo, monospace;
+}
+
+/* ===== Tick spin — Dot does a little twirl on every observation tick ===== */
+.tick-pulse {
+  position: relative;
+  transform-origin: 50% 60%;
+}
+.tick-pulse--idle {
+  animation: tick-spin 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.tick-pulse--escalated {
+  animation: tick-spin-big 1200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.tick-pulse--escalated::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 0 3px rgba(255, 213, 107, 0.95);
+  animation: tick-glow 1200ms ease-out forwards;
+}
+@keyframes tick-spin {
+  0%   { transform: rotate(0deg)   scale(1); }
+  50%  { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes tick-spin-big {
+  0%   { transform: rotate(0deg)   scale(1); }
+  25%  { transform: rotate(180deg) scale(1.15); }
+  50%  { transform: rotate(360deg) scale(1.15); }
+  75%  { transform: rotate(540deg) scale(1.08); }
+  100% { transform: rotate(720deg) scale(1); }
+}
+@keyframes tick-glow {
+  0%   { opacity: 0; transform: scale(0.9); }
+  20%  { opacity: 1; transform: scale(1.0); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+/* =====================================================================
+   Character cast (M9) — each form layers a wrapClass on top of the
+   existing state animations. The body palette itself is swapped by the
+   renderer via characters.ts; these classes add mood-specific motion,
+   filters, and halos without interfering with idle/talk/think/alert.
+   ===================================================================== */
+
+/* ---- Sleepy: slower breathing, slight droop, muted hue ---- */
+.pet-char-sleepy.pet-wrap--idle {
+  animation: pet-sleepy-breathe 6s ease-in-out infinite;
+  filter: brightness(0.94) saturate(0.8);
+}
+@keyframes pet-sleepy-breathe {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  50%      { transform: scale(1.01, 0.99) translateY(1px); }
+}
+
+/* ---- Focused: tight pulse + faint cyan halo ---- */
+.pet-char-focused {
+  filter: drop-shadow(0 0 6px rgba(47, 167, 184, 0.35));
+}
+.pet-char-focused.pet-wrap--idle {
+  animation: pet-focused-pulse 2.4s ease-in-out infinite;
+}
+@keyframes pet-focused-pulse {
+  0%, 100% { transform: scale(1, 1); filter: drop-shadow(0 0 6px rgba(47, 167, 184, 0.35)); }
+  50%      { transform: scale(1.01, 0.99); filter: drop-shadow(0 0 10px rgba(47, 167, 184, 0.55)); }
+}
+
+/* ---- Excited: bouncy, warm glow ---- */
+.pet-char-excited.pet-wrap--idle {
+  animation: pet-excited-bounce 0.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 154, 90, 0.5));
+}
+@keyframes pet-excited-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30%      { transform: translateY(-6px) scale(1.03); }
+  60%      { transform: translateY(0) scale(1); }
+  80%      { transform: translateY(-2px) scale(1.01); }
+}
+
+/* ---- Concerned: slow heavy breath, subtle red aura ---- */
+.pet-char-concerned {
+  filter: drop-shadow(0 0 5px rgba(232, 106, 92, 0.35));
+}
+.pet-char-concerned.pet-wrap--idle {
+  animation: pet-concerned-breathe 4.5s ease-in-out infinite;
+}
+@keyframes pet-concerned-breathe {
+  0%, 100% { transform: scale(1, 1); filter: drop-shadow(0 0 5px rgba(232, 106, 92, 0.3)); }
+  50%      { transform: scale(1.02, 0.97); filter: drop-shadow(0 0 10px rgba(232, 106, 92, 0.5)); }
+}
+
+/* ---- Playful: small wiggle + pink halo ---- */
+.pet-char-playful.pet-wrap--idle {
+  animation: pet-playful-wiggle 2.1s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 158, 203, 0.45));
+}
+@keyframes pet-playful-wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25%      { transform: rotate(-2deg) scale(1.015); }
+  75%      { transform: rotate(2deg) scale(1.015); }
+}
+
+/* ---- Rainbow: hue cycle + sparkle ---- */
+.pet-char-rainbow {
+  animation: pet-rainbow-hue 4s linear infinite;
+}
+@keyframes pet-rainbow-hue {
+  0%   { filter: hue-rotate(0deg) drop-shadow(0 0 10px rgba(255, 200, 255, 0.6)); }
+  50%  { filter: hue-rotate(180deg) drop-shadow(0 0 14px rgba(200, 200, 255, 0.7)); }
+  100% { filter: hue-rotate(360deg) drop-shadow(0 0 10px rgba(255, 200, 255, 0.6)); }
+}
+
+/* =====================================================================
+   New named moods — triggered once by the renderer via a one-shot class
+   toggle. Examples: nuzzle on user thanks, sparkle on task completion.
+   These are "gestures" not persistent states.
+   ===================================================================== */
+
+.pet-gesture-nuzzle { animation: pet-nuzzle 0.9s ease-in-out 1; }
+@keyframes pet-nuzzle {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25%      { transform: rotate(-6deg) translateX(-3px); }
+  50%      { transform: rotate(0deg) translateX(2px); }
+  75%      { transform: rotate(5deg) translateX(3px); }
+}
+
+.pet-gesture-sparkle { animation: pet-sparkle 1.2s ease-out 1; }
+@keyframes pet-sparkle {
+  0%   { filter: brightness(1) drop-shadow(0 0 0 rgba(255, 230, 168, 0)); }
+  30%  { filter: brightness(1.25) drop-shadow(0 0 16px rgba(255, 230, 168, 0.95)); }
+  100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255, 230, 168, 0)); }
+}
+
+.pet-gesture-stretch { animation: pet-stretch 1.1s ease-in-out 1; }
+@keyframes pet-stretch {
+  0%, 100% { transform: scale(1, 1); }
+  50%      { transform: scale(1.08, 0.92) translateY(-3px); }
+}
+
+.pet-gesture-peek { animation: pet-peek 1.4s ease-in-out 1; }
+@keyframes pet-peek {
+  0%   { transform: translateX(-40px) scale(0.9); opacity: 0; }
+  40%  { transform: translateX(6px) scale(1.05); opacity: 1; }
+  70%  { transform: translateX(-2px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}

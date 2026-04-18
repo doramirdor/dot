@@ -1,0 +1,50 @@
+{
+  "name": "nina",
+  "version": "0.0.1",
+  "description": "A tiny desktop companion powered by Claude",
+  "main": "./out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "plugin:install": "openclaw plugins install -l ./src/plugin",
+    "plugin:inspect": "openclaw plugins inspect dot-mac"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.9",
+    "@huggingface/transformers": "^4.0.1",
+    "@sinclair/typebox": "0.34.48",
+    "better-sqlite3": "^12.8.0",
+    "playwright": "^1.49.0",
+    "sqlite-vec": "^0.1.9",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.0",
+    "electron-vite": "^2.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "playwright",
+      "playwright-core",
+      "better-sqlite3",
+      "onnxruntime-node",
+      "protobufjs",
+      "sharp"
+    ]
+  }
+}

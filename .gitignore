@@ -1,0 +1,21 @@
+node_modules
+out
+dist
+.DS_Store
+*.log
+.env
+.env.*
+
+# Build / editor
+.vite
+.cache
+.idea
+.vscode
+*.swp
+
+# Dot runtime state (lives in ~/.nina; keep the repo clean)
+.nina-local/
+
+# Claude Code transient state
+.claude/scheduled_tasks.lock
+.claude/*.log

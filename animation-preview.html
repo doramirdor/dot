@@ -1,0 +1,376 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dot animation mockups</title>
+<style>
+  body { background:#1a1a2e; color:#eee; font-family:-apple-system,sans-serif; padding:32px; }
+  h1 { font-size:16px; font-weight:600; margin:0 0 24px; }
+  .row { display:flex; gap:32px; flex-wrap:wrap; margin-bottom:32px; }
+  .card { background:#24243e; border-radius:12px; padding:16px; text-align:center; }
+  .card h2 { font-size:12px; font-weight:500; margin:0 0 12px; color:#9fe0f5; text-transform:uppercase; letter-spacing:0.08em; }
+  .card p { font-size:11px; color:#888; margin:8px 0 0; max-width:160px; }
+  svg { image-rendering:pixelated; }
+</style>
+</head>
+<body>
+<h1>Dot — reading & working mockups</h1>
+
+<div class="row">
+
+<!-- baseline idle -->
+<div class="card">
+  <h2>idle (today)</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-adult">
+      <!-- body rows 4-14, adult blue palette -->
+      <!-- generated from BODY array with ADULT_BODY colors -->
+    </g>
+  </svg>
+  <p>current sprite, no accessory</p>
+</div>
+
+<!-- reading: open book -->
+<div class="card">
+  <h2>reading</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-reading"></g>
+    <g id="book"></g>
+  </svg>
+  <p>open book held in front, eyes cast down at the page</p>
+</div>
+
+<!-- working v1: floating laptop -->
+<div class="card">
+  <h2>working (floating laptop)</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <use href="#body-adult"/>
+    <g id="laptop-float"></g>
+  </svg>
+  <p>option 1: laptop tucks under body, no pose change. cheapest.</p>
+</div>
+
+<!-- working v2: seated -->
+<div class="card">
+  <h2>working (seated)</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-seated"></g>
+    <g id="laptop-lap"></g>
+  </svg>
+  <p>option 2: new seated body, laptop in lap. most charming.</p>
+</div>
+
+</div>
+
+<div class="row">
+
+<div class="card">
+  <h2>celebrating</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-celebrate"></g>
+  </svg>
+  <p>^ ^ happy eyes, confetti pixels above head</p>
+</div>
+
+<div class="card">
+  <h2>confused</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-confused"></g>
+  </svg>
+  <p>? mark floating, pupils crossed inward, wavy mouth</p>
+</div>
+
+<div class="card">
+  <h2>listening</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-listening"></g>
+  </svg>
+  <p>ear perked on top of head, pupils tilted toward sound</p>
+</div>
+
+<div class="card">
+  <h2>peeking</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <defs>
+      <clipPath id="peek-clip"><rect x="56" y="0" width="88" height="152"/></clipPath>
+    </defs>
+    <g clip-path="url(#peek-clip)" id="body-peek"></g>
+    <line x1="56" y1="0" x2="56" y2="152" stroke="#444" stroke-width="1" stroke-dasharray="4 4"/>
+  </svg>
+  <p>half-clipped at screen edge, one eye visible</p>
+</div>
+
+<div class="card">
+  <h2>deep sleep</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-deepsleep"></g>
+  </svg>
+  <p>nightcap, dimmed palette, slower bigger Zzz</p>
+</div>
+
+<div class="card">
+  <h2>thinking v2</h2>
+  <svg width="144" height="152" viewBox="0 0 144 152" shape-rendering="crispEdges">
+    <g id="body-thinking2"></g>
+  </svg>
+  <p>lightbulb above head instead of dots</p>
+</div>
+
+</div>
+
+<script>
+// Shared pixel data from Pet.tsx
+const CELL = 8;
+const ADULT = { outline:'#1a1a2e', bodyLight:'#c5ecf7', body:'#9fe0f5', bodyShade:'#6cc0e8',
+                cheek:'#ffb5c5', eyeWhite:'#fffdf5', pupil:'#1a1a2e',
+                frame:'#5a3a1a', gold:'#ffd56b', bulb:'#ffe89a',
+                cap:'#c84848', capShade:'#8a2828', pom:'#fffdf5',
+                dimBody:'#4a6a7a', dimShade:'#2a3a4a', dimLight:'#6a8a9a',
+                metal:'#c0c8d0', screen:'#3a506b', screenLight:'#5f7a9a', key:'#8a95a5' };
+
+const BODY = [
+  [5,4,'outline'],[6,4,'outline'],[7,4,'outline'],[8,4,'outline'],[9,4,'outline'],[10,4,'outline'],
+  [4,5,'outline'],[5,5,'bodyLight'],[6,5,'body'],[7,5,'body'],[8,5,'body'],[9,5,'body'],[10,5,'bodyShade'],[11,5,'outline'],
+  [3,6,'outline'],[4,6,'bodyLight'],[5,6,'body'],[6,6,'body'],[7,6,'body'],[8,6,'body'],[9,6,'body'],[10,6,'body'],[11,6,'bodyShade'],[12,6,'outline'],
+  [3,7,'outline'],[4,7,'body'],[5,7,'body'],[6,7,'body'],[7,7,'body'],[8,7,'body'],[9,7,'body'],[10,7,'body'],[11,7,'body'],[12,7,'outline'],
+  [3,8,'outline'],[4,8,'body'],[5,8,'body'],[6,8,'body'],[7,8,'body'],[8,8,'body'],[9,8,'body'],[10,8,'body'],[11,8,'body'],[12,8,'outline'],
+  [3,9,'outline'],[4,9,'cheek'],[5,9,'body'],[6,9,'body'],[7,9,'body'],[8,9,'body'],[9,9,'body'],[10,9,'body'],[11,9,'cheek'],[12,9,'outline'],
+  [3,10,'outline'],[4,10,'body'],[5,10,'body'],[6,10,'body'],[7,10,'outline'],[8,10,'outline'],[9,10,'body'],[10,10,'body'],[11,10,'body'],[12,10,'outline'],
+  [3,11,'outline'],[4,11,'bodyShade'],[5,11,'body'],[6,11,'body'],[7,11,'body'],[8,11,'body'],[9,11,'body'],[10,11,'body'],[11,11,'bodyShade'],[12,11,'outline'],
+  [4,12,'outline'],[5,12,'bodyShade'],[6,12,'body'],[7,12,'body'],[8,12,'body'],[9,12,'body'],[10,12,'bodyShade'],[11,12,'outline'],
+  [5,13,'outline'],[6,13,'bodyShade'],[7,13,'bodyShade'],[8,13,'bodyShade'],[9,13,'bodyShade'],[10,13,'outline'],
+  [6,14,'outline'],[7,14,'outline'],[8,14,'outline'],[9,14,'outline'],
+];
+
+// Eyes open
+const EYES = [
+  [5,7,'eyeWhite'],[6,7,'eyeWhite'],[5,8,'eyeWhite'],[6,8,'eyeWhite'],[6,8,'pupil'],
+  [9,7,'eyeWhite'],[10,7,'eyeWhite'],[9,8,'eyeWhite'],[10,8,'eyeWhite'],[10,8,'pupil'],
+];
+
+// Nerdy glasses — tight square frames hugging existing eyes.
+// Eyes live at (5-6, 7-8) and (9-10, 7-8). Frames bracket each eye 1px out.
+// Frame color is a warm tortoise-brown for contrast against blue body AND dark head outline.
+const GLASSES = [
+  // LEFT lens fill (white) — exact eye area
+  [5,7,'eyeWhite'],[6,7,'eyeWhite'],
+  [5,8,'eyeWhite'],[6,8,'eyeWhite'],
+  // LEFT frame (tight box around eye)
+  [4,6,'frame'],[5,6,'frame'],[6,6,'frame'],[7,6,'frame'],
+  [4,7,'frame'],                            [7,7,'frame'],
+  [4,8,'frame'],                            [7,8,'frame'],
+  [4,9,'frame'],[5,9,'frame'],[6,9,'frame'],[7,9,'frame'],
+
+  // RIGHT lens fill
+  [9,7,'eyeWhite'],[10,7,'eyeWhite'],
+  [9,8,'eyeWhite'],[10,8,'eyeWhite'],
+  // RIGHT frame
+  [8,6,'frame'],[9,6,'frame'],[10,6,'frame'],[11,6,'frame'],
+  [8,7,'frame'],                             [11,7,'frame'],
+  [8,8,'frame'],                             [11,8,'frame'],
+  [8,9,'frame'],[9,9,'frame'],[10,9,'frame'],[11,9,'frame'],
+
+  // Bridge connecting the two frames at eye-level
+  [7,7,'frame'],[8,7,'frame'],
+
+  // Temple arms reaching out past the head
+  [3,7,'frame'],[12,7,'frame'],
+
+  // Pupils — studious, centered
+  [5,7,'pupil'],[10,7,'pupil'],
+];
+
+// Laptop floating under body: base at y=14-15, screen tilts up from y=12-13
+// This one sits in front of the lower body. Hands peck at the keyboard.
+const LAPTOP_FLOAT = [
+  // screen (open, tilted up)
+  [4,12,'metal'],[5,12,'metal'],[6,12,'metal'],[7,12,'metal'],[8,12,'metal'],[9,12,'metal'],[10,12,'metal'],[11,12,'metal'],
+  [4,13,'metal'],[5,13,'screen'],[6,13,'screenLight'],[7,13,'screen'],[8,13,'screen'],[9,13,'screenLight'],[10,13,'screen'],[11,13,'metal'],
+  // base / keyboard
+  [3,14,'metal'],[4,14,'metal'],[5,14,'key'],[6,14,'key'],[7,14,'key'],[8,14,'key'],[9,14,'key'],[10,14,'key'],[11,14,'metal'],[12,14,'metal'],
+  [3,15,'outline'],[4,15,'outline'],[5,15,'outline'],[6,15,'outline'],[7,15,'outline'],[8,15,'outline'],[9,15,'outline'],[10,15,'outline'],[11,15,'outline'],[12,15,'outline'],
+  // hands pecking on keyboard (two little nubs on top of keys)
+  [5,13,'body'],[6,13,'outline'],
+  [9,13,'outline'],[10,13,'body'],
+];
+
+// Seated body: shrunk to rows 4-11, legs folded under. Hands come forward at y=10-11.
+const BODY_SEATED = [
+  // head/top same as before (rows 4-8)
+  [5,4,'outline'],[6,4,'outline'],[7,4,'outline'],[8,4,'outline'],[9,4,'outline'],[10,4,'outline'],
+  [4,5,'outline'],[5,5,'bodyLight'],[6,5,'body'],[7,5,'body'],[8,5,'body'],[9,5,'body'],[10,5,'bodyShade'],[11,5,'outline'],
+  [3,6,'outline'],[4,6,'bodyLight'],[5,6,'body'],[6,6,'body'],[7,6,'body'],[8,6,'body'],[9,6,'body'],[10,6,'body'],[11,6,'bodyShade'],[12,6,'outline'],
+  [3,7,'outline'],[4,7,'body'],[5,7,'eyeWhite'],[6,7,'eyeWhite'],[7,7,'body'],[8,7,'body'],[9,7,'eyeWhite'],[10,7,'eyeWhite'],[11,7,'body'],[12,7,'outline'],
+  [3,8,'outline'],[4,8,'body'],[5,8,'eyeWhite'],[6,8,'pupil'],[7,8,'body'],[8,8,'body'],[9,8,'eyeWhite'],[10,8,'pupil'],[11,8,'body'],[12,8,'outline'],
+  [3,9,'outline'],[4,9,'cheek'],[5,9,'body'],[6,9,'body'],[7,9,'body'],[8,9,'body'],[9,9,'body'],[10,9,'body'],[11,9,'cheek'],[12,9,'outline'],
+  // arms reaching forward (rows 10-11)
+  [3,10,'outline'],[4,10,'bodyShade'],[5,10,'body'],[6,10,'body'],[7,10,'outline'],[8,10,'outline'],[9,10,'body'],[10,10,'body'],[11,10,'bodyShade'],[12,10,'outline'],
+  [3,11,'outline'],[4,11,'outline'],[5,11,'bodyShade'],[6,11,'outline'],[7,11,'body'],[8,11,'body'],[9,11,'outline'],[10,11,'bodyShade'],[11,11,'outline'],[12,11,'outline'],
+  // folded legs (row 12)
+  [4,12,'outline'],[5,12,'bodyShade'],[6,12,'bodyShade'],[9,12,'bodyShade'],[10,12,'bodyShade'],[11,12,'outline'],
+  [4,13,'outline'],[5,13,'outline'],[6,13,'outline'],[9,13,'outline'],[10,13,'outline'],[11,13,'outline'],
+];
+
+// Laptop in lap (sits in front of seated body, rows 11-13)
+const LAPTOP_LAP = [
+  // screen
+  [5,9,'metal'],[6,9,'metal'],[7,9,'metal'],[8,9,'metal'],[9,9,'metal'],[10,9,'metal'],
+  [5,10,'metal'],[6,10,'screen'],[7,10,'screenLight'],[8,10,'screen'],[9,10,'screenLight'],[10,10,'metal'],
+  [5,11,'metal'],[6,11,'screen'],[7,11,'screen'],[8,11,'screen'],[9,11,'screen'],[10,11,'metal'],
+  // base / keyboard
+  [4,12,'metal'],[5,12,'key'],[6,12,'key'],[7,12,'key'],[8,12,'key'],[9,12,'key'],[10,12,'key'],[11,12,'metal'],
+  [4,13,'outline'],[5,13,'outline'],[6,13,'outline'],[7,13,'outline'],[8,13,'outline'],[9,13,'outline'],[10,13,'outline'],[11,13,'outline'],
+  // hands typing on keyboard
+  [5,11,'body'],[6,11,'bodyShade'],
+  [9,11,'bodyShade'],[10,11,'body'],
+];
+
+function paint(targetId, pixels) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const g = document.getElementById(targetId);
+  if (!g) return;
+  pixels.forEach(([x,y,key]) => {
+    const r = document.createElementNS(ns,'rect');
+    r.setAttribute('x', x*CELL); r.setAttribute('y', y*CELL);
+    r.setAttribute('width', CELL); r.setAttribute('height', CELL);
+    r.setAttribute('fill', ADULT[key] || '#f0f');
+    g.appendChild(r);
+  });
+}
+
+// Eyes looking DOWN at the book (pupils in bottom row of eye whites)
+const EYES_DOWN = [
+  [5,7,'eyeWhite'],[6,7,'eyeWhite'],[5,8,'eyeWhite'],[6,8,'eyeWhite'],
+  [9,7,'eyeWhite'],[10,7,'eyeWhite'],[9,8,'eyeWhite'],[10,8,'eyeWhite'],
+  [5,8,'pupil'],[6,8,'pupil'],[9,8,'pupil'],[10,8,'pupil'],
+];
+
+// Open book held in front of lower body. Occupies rows 10-13, x 4-11.
+// Two pages with a dark spine down the middle, little text lines.
+const BOOK = [
+  // top edge (covers are tan/brown)
+  [4,10,'outline'],[5,10,'frame'],[6,10,'frame'],[7,10,'frame'],[8,10,'frame'],[9,10,'frame'],[10,10,'frame'],[11,10,'outline'],
+  // pages row 1 — white with a line of text
+  [4,11,'outline'],[5,11,'eyeWhite'],[6,11,'pupil'],[7,11,'eyeWhite'],[8,11,'eyeWhite'],[9,11,'pupil'],[10,11,'eyeWhite'],[11,11,'outline'],
+  // pages row 2 — white with a line of text + spine center
+  [4,12,'outline'],[5,12,'pupil'],[6,12,'eyeWhite'],[7,12,'pupil'],[8,12,'pupil'],[9,12,'eyeWhite'],[10,12,'pupil'],[11,12,'outline'],
+  // bottom edge
+  [4,13,'outline'],[5,13,'frame'],[6,13,'frame'],[7,13,'frame'],[8,13,'frame'],[9,13,'frame'],[10,13,'frame'],[11,13,'outline'],
+  // little hand nubs peeking from behind book on each side
+  [3,11,'body'],[12,11,'body'],
+  [3,12,'bodyShade'],[12,12,'bodyShade'],
+];
+
+// ---------- new state overlays ----------
+
+// Happy ^ ^ closed eyes (diagonal strokes)
+const EYES_HAPPY = [
+  [5,8,'outline'],[6,7,'outline'],
+  [9,7,'outline'],[10,8,'outline'],
+];
+// Open smile mouth
+const MOUTH_SMILE_BIG = [
+  [6,10,'outline'],[7,11,'outline'],[8,11,'outline'],[9,10,'outline'],
+];
+// Confetti scattered above the head
+const CONFETTI = [
+  [4,1,'gold'],[7,0,'cheek'],[10,1,'bodyLight'],[13,2,'gold'],
+  [2,3,'cheek'],[14,4,'bodyLight'],[6,2,'gold'],[11,3,'cheek'],
+];
+
+// Crossed pupils (looking inward)
+const EYES_CROSSED = [
+  [5,7,'eyeWhite'],[6,7,'eyeWhite'],[5,8,'eyeWhite'],[6,8,'eyeWhite'],
+  [9,7,'eyeWhite'],[10,7,'eyeWhite'],[9,8,'eyeWhite'],[10,8,'eyeWhite'],
+  [6,8,'pupil'],[9,8,'pupil'],
+];
+// Wavy/uncertain mouth
+const MOUTH_WAVY = [
+  [6,10,'outline'],[7,11,'outline'],[8,10,'outline'],[9,11,'outline'],
+];
+// Question mark accessory top-right
+const QMARK = [
+  [13,1,'outline'],[14,1,'outline'],[15,1,'outline'],
+  [15,2,'outline'],
+  [14,3,'outline'],
+  [14,4,'outline'],
+  [14,6,'outline'],
+];
+
+// Pupils tilted right (listening toward a sound)
+const EYES_TILTED_R = [
+  [5,7,'eyeWhite'],[6,7,'eyeWhite'],[5,8,'eyeWhite'],[6,8,'eyeWhite'],
+  [9,7,'eyeWhite'],[10,7,'eyeWhite'],[9,8,'eyeWhite'],[10,8,'eyeWhite'],
+  [6,7,'pupil'],[10,7,'pupil'],
+];
+// Perked ear on top of head
+const EAR = [
+  [9,2,'outline'],
+  [9,3,'body'],[10,3,'outline'],
+  [9,4,'body'],[10,4,'body'],
+  // inner pink
+  [9,4,'cheek'],
+];
+
+// Nightcap over the top of the head (covers rows 3-5)
+const NIGHTCAP = [
+  // base band (white trim)
+  [4,4,'pom'],[5,4,'pom'],[6,4,'pom'],[7,4,'pom'],[8,4,'pom'],[9,4,'pom'],[10,4,'pom'],[11,4,'pom'],
+  // body of cap — leaning to one side
+  [5,3,'cap'],[6,3,'cap'],[7,3,'cap'],[8,3,'cap'],[9,3,'cap'],[10,3,'capShade'],
+  [6,2,'cap'],[7,2,'cap'],[8,2,'cap'],[9,2,'capShade'],
+  [7,1,'cap'],[8,1,'capShade'],
+  // pom-pom at tip
+  [8,0,'pom'],[9,0,'pom'],
+];
+// Closed sleeping eyes
+const EYES_CLOSED = [[5,8,'outline'],[6,8,'outline'],[9,8,'outline'],[10,8,'outline']];
+// Bigger Zzz
+const BIG_ZZZ = [
+  [13,1,'bodyLight'],[14,1,'bodyLight'],[15,1,'bodyLight'],
+  [14,2,'bodyLight'],
+  [13,3,'bodyLight'],[14,3,'bodyLight'],[15,3,'bodyLight'],
+];
+
+// Thought cloud with dots inside, top-right, with a little trailing bubble
+const THOUGHT_CLOUD = [
+  // cloud outline (puffy shape)
+                            [13,0,'outline'],[14,0,'outline'],
+  [12,1,'outline'],[13,1,'eyeWhite'],[14,1,'eyeWhite'],[15,1,'outline'],
+  [11,2,'outline'],[12,2,'eyeWhite'],[13,2,'eyeWhite'],[14,2,'eyeWhite'],[15,2,'outline'],
+  [11,3,'outline'],[12,3,'eyeWhite'],[13,3,'eyeWhite'],[14,3,'eyeWhite'],[15,3,'outline'],
+                   [12,4,'outline'],[13,4,'outline'],[14,4,'outline'],
+  // three dots inside the cloud (what she's thinking about)
+  [12,3,'pupil'],[13,3,'pupil'],[14,3,'pupil'],
+  // trailing tail bubble between head and cloud
+  [11,5,'outline'],
+];
+// Pupils looking up at the thought cloud
+const EYES_UP = [
+  [5,7,'eyeWhite'],[6,7,'eyeWhite'],[5,8,'eyeWhite'],[6,8,'eyeWhite'],
+  [9,7,'eyeWhite'],[10,7,'eyeWhite'],[9,8,'eyeWhite'],[10,8,'eyeWhite'],
+  [6,7,'pupil'],[10,7,'pupil'],
+];
+
+// Dim body for deep sleep — same shape as BODY but body/bodyShade/bodyLight remapped
+const BODY_DIM = BODY.map(([x,y,k]) => {
+  const remap = { body:'dimBody', bodyShade:'dimShade', bodyLight:'dimLight' };
+  return [x, y, remap[k] || k];
+});
+
+paint('body-adult', [...BODY, ...EYES, [7,10,'outline'],[8,10,'outline']]);
+paint('body-reading', [...BODY, ...EYES_DOWN, [7,10,'outline'],[8,10,'outline']]);
+paint('book', BOOK);
+paint('laptop-float', LAPTOP_FLOAT);
+paint('body-seated', BODY_SEATED);
+paint('laptop-lap', LAPTOP_LAP);
+
+paint('body-celebrate', [...BODY, ...EYES_HAPPY, ...MOUTH_SMILE_BIG, ...CONFETTI]);
+paint('body-confused', [...BODY, ...EYES_CROSSED, ...MOUTH_WAVY, ...QMARK]);
+paint('body-listening', [...BODY, ...EAR, ...EYES_TILTED_R, [7,10,'outline'],[8,10,'outline']]);
+paint('body-peek', [...BODY, ...EYES, [7,10,'outline'],[8,10,'outline']]);
+paint('body-deepsleep', [...BODY_DIM, ...NIGHTCAP, ...EYES_CLOSED, [8,10,'outline'], ...BIG_ZZZ]);
+paint('body-thinking2', [...BODY, ...EYES_UP, [7,10,'outline'],[8,10,'outline'], ...THOUGHT_CLOUD]);
+</script>
+</body>
+</html>

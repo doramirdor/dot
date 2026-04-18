@@ -1,0 +1,13 @@
+{
+  "name": "@dot/dot-mac",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dot macOS Bridge — native macOS capabilities as an OpenClaw plugin",
+  "type": "module",
+  "openclaw": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.48"
+  }
+}

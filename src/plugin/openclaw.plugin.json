@@ -1,0 +1,20 @@
+{
+  "id": "dot-mac",
+  "name": "Dot macOS Bridge",
+  "description": "Native macOS capabilities for OpenClaw agents: accessibility control, screen capture, system settings, persistent browser, reversible file ops, Shortcuts, app management, and presence detection.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enableScreenWatcher": {
+        "type": "boolean",
+        "description": "Start the continuous screen watcher on plugin load (default: true)"
+      },
+      "screenWatcherIntervalMs": {
+        "type": "number",
+        "description": "Screen capture interval in milliseconds (default: 180000 = 3 min)"
+      }
+    }
+  }
+}
